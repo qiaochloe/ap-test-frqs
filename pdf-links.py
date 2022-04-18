@@ -2,6 +2,7 @@
 
 import requests
 from bs4 import BeautifulSoup as bs
+import os
 
 def get_question_links(exam):
     """Scrapes CollegeBoard site and returns links to FRQ PDFs
@@ -30,7 +31,7 @@ def get_question_links(exam):
             
     return question_links
 
-def download_pdfs(links):
+def download_pdfs(exam, links):
     """Downloads PDFs in the pdf folder
     
     :param links: links to PDFs 
@@ -42,11 +43,17 @@ def download_pdfs(links):
         
         # Get pdf info
         name = link.split('/')[-1]
-        path = f"pdfs/{name}"
         content = requests.get(link).content
+        
+        path = f"pdfs/{exam}/{name}"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         
         # Create pdf with said info
         with open(path, "wb") as pdf:
             pdf.write(content)
-            
-download_pdfs(get_question_links("ap-world-history"))
+
+def main(exam):
+    question_links = get_question_links(exam)
+    download_pdfs(exam, question_links)
+    
+main("ap-world-history")
