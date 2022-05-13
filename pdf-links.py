@@ -45,7 +45,7 @@ def download_pdfs(exam, links):
         name = link.split('/')[-1]
         content = requests.get(link).content
         
-        path = f"pdfs/{exam}/{name}"
+        path = f"{exam}/{name}"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         
         # Create pdf with said info
@@ -55,5 +55,3 @@ def download_pdfs(exam, links):
 def main(exam):
     question_links = get_question_links(exam)
     download_pdfs(exam, question_links)
-    
-main("ap-world-history")
