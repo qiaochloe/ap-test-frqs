@@ -1,14 +1,19 @@
 import re
+import pandas as pd
+import numpy as np
+
+EARLIEST_YEAR = 1954
+LATEST_YEAR = 2022
 
 file_name = "ap21-frq-world-history.txt"
-file_regex = '^([0-9]\.\s)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s))$'
+file_regex = "^([0-9]\.\s)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s))$"
 question_keys = ["SAQ1", "SAQ2", "SAQ3", "SAQ4", "DBQ1", "LEQ2", "LEQ3", "LEQ4"]
 
 initial_bad_phrases = ["BeginyourresponsetothisquestionatthetopofanewpageintheseparateFreeResponsebooklet",
                "andfillintheappropriatecircleatthetopofeachpagetoindicatethequestionnumber.",
                "WHEN YOUFINISH WRITING,CHECK YOUR WORKONSECTIONIIIF TIMEPERMITS.",
                "STOP END OF EXAM"]
-    
+
 def get_bad_phrases_regex(bad_phrases):
     """Returns regex pattern that recognizes phrase patterns regardless of whitespace characters in between
     
@@ -44,19 +49,18 @@ def remove_bad_phrases(file_content, bad_phrases_regex):
     
     return file_content
 
-def get_questions(file_content, file_regex, question_keys):
-    """Scrapes CollegeBoard site and returns links to FRQ PDFs
+def get_questions(file_content, file_regex):
+    """Gets a list of questions
     
     Args: 
         file_name (str): name of file
         file_regex (str): regex to parse file
-        question_keys (list): keys in [Type][Number] format for the returned dictionary
     
     Returns:
-        dict: dictionary of exam questions sorted by year
+        list: list of exam questions in chronological order (as they appear in the text)
     """
 
-    questions = {}
+    questions = []
     count = 0
     
     for match in re.finditer(file_regex, file_content, flags=re.I|re.M|re.S):
@@ -69,26 +73,41 @@ def get_questions(file_content, file_regex, question_keys):
         
         # clean up newlines and empty strings
         question = [re.sub("\n", "", subquestion, flags=re.I|re.M|re.S).strip(" ") for subquestion in question if subquestion != ""]
+        
+        # convert list to string
+        question = ' '.join(question)
 
-        # add subquestions list to dictionary
-        questions[question_keys[count]] = question        
+        # add subquestions to dictionary
+        questions.append(question)
         count += 1
 
-    return questions
-
-def main(file_name, file_regex, question_keys):
+    return questions    
     
-    questions = {}
+def get_year(file_name):
+    for match in re.finditer("\d+", file_name): # all numbers in a str
+        
+        value = match.group(0)
+        
+        if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
+            return int(value)
+        elif len(value) == 2:
+            if int(value) <= int(str(LATEST_YEAR)[-2:]):
+                return int("20" + value)
+            elif int(value) >= int(str(EARLIEST_YEAR)[-2:]):
+                return int("19" + value)
+            
+    return np.NaN
+
+def main(file_name, file_regex):
     
     with open(f'test-data/{file_name}', encoding="utf-8") as file:
         file_content = file.read() # string
         file_content = remove_bad_phrases(file_content, get_bad_phrases_regex(initial_bad_phrases))
-        
-        questions = get_questions(file_content, file_regex, question_keys)
+        questions = get_questions(file_content, file_regex)
         
     return questions
 
-print(main(file_name, file_regex, question_keys))
+# print(main(file_name, file_regex))
                     
 # ^([0-9]\.\s)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s))$
 # re.M
