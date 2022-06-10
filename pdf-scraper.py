@@ -7,10 +7,11 @@ import os
 def get_question_links(exam):
     """Scrapes CollegeBoard site and returns links to FRQ PDFs
     
-    :param exam: name of exam
-    :type exam: str
-    :rtype: list
-    :return: links to question PDFs
+    Args:
+        exam (str): name of exam
+    
+    Returns:
+        list: list of links to question PDFs
     """
     # Set up soup
     frqs_url = f"https://apcentral.collegeboard.org/courses/{exam}/exam/past-exam-questions"
@@ -32,11 +33,13 @@ def get_question_links(exam):
     return question_links
 
 def download_pdfs(exam, links):
-    """Downloads PDFs in the pdf folder
+    """Downloads PDFs under {exam}/pdf/{pdf_name}
     
-    :param links: links to PDFs 
-    :type links: list
-    :rtype: None
+    Args:
+        links (list): links to PDFs 
+
+    Returns:
+        none
     """
 
     for link in links:
@@ -45,13 +48,13 @@ def download_pdfs(exam, links):
         name = link.split('/')[-1]
         content = requests.get(link).content
         
-        path = f"{exam}/{name}"
+        path = f"{exam}/pdf/{name}"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         
         # Create pdf with said info
         with open(path, "wb") as pdf:
             pdf.write(content)
 
-def main(exam):
+def scrape_pdfs(exam):
     question_links = get_question_links(exam)
     download_pdfs(exam, question_links)
