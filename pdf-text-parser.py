@@ -103,6 +103,17 @@ def get_year(file_name, file_content):
             
     return np.NaN
 
+def get_question_type(year):
+    if year >= 2017:
+        question_type = [["SAQ", "1"], ["SAQ", "2"],
+                         ["SAQ", "3"], ["SAQ", "4"],
+                         ["DBQ", "1"], ["LEQ", "2"],
+                         ["LEQ", "3"], ["LEQ", "4"]]
+    else:
+        question_type = [["DBQ", "1"], ["LEQ", "2"], ["LEQ", "3"]]
+    
+    return question_type
+
 # MAIN defines the path at test-data/{file_name}
 def main(file_name, file_regex):
     
