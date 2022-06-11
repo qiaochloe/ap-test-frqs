@@ -53,7 +53,7 @@ def get_questions(file_content, file_regex):
     """Gets a list of questions
     
     Args: 
-        file_name (str): name of file
+        file_content (str): content of the text file
         file_regex (str): regex to parse file
     
     Returns:
@@ -83,11 +83,16 @@ def get_questions(file_content, file_regex):
 
     return questions    
     
-def get_year(file_name):
+def get_year(file_name, file_content):
+    # search content of the file
+    year_regex = "\d+"
+    for match in re.finditer(year_regex, file_content):
+        if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
+            return match
+    
+    # search the name of the file
     for match in re.finditer("\d+", file_name): # all numbers in a str
-        
         value = match.group(0)
-        
         if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
             return int(value)
         elif len(value) == 2:
@@ -98,6 +103,7 @@ def get_year(file_name):
             
     return np.NaN
 
+# MAIN defines the path at test-data/{file_name}
 def main(file_name, file_regex):
     
     with open(f'test-data/{file_name}', encoding="utf-8") as file:
@@ -107,7 +113,7 @@ def main(file_name, file_regex):
         
     return questions
 
-# print(main(file_name, file_regex))
+print(main(file_name, file_regex))
                     
 # ^([0-9]\.\s)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s))$
 # re.M
