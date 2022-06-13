@@ -1,6 +1,7 @@
 import re
 import pandas as pd
 import numpy as np
+from preprocessing import preprocess_file_content 
 
 EARLIEST_YEAR = 1954
 LATEST_YEAR = 2022
@@ -9,45 +10,48 @@ file_name = "ap21-frq-world-history.txt"
 file_regex = "^([0-9]\.\s)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s))$"
 question_keys = ["SAQ1", "SAQ2", "SAQ3", "SAQ4", "DBQ1", "LEQ2", "LEQ3", "LEQ4"]
 
-initial_bad_phrases = ["BeginyourresponsetothisquestionatthetopofanewpageintheseparateFreeResponsebooklet",
-               "andfillintheappropriatecircleatthetopofeachpagetoindicatethequestionnumber.",
-               "WHEN YOUFINISH WRITING,CHECK YOUR WORKONSECTIONIIIF TIMEPERMITS.",
-               "STOP END OF EXAM"]
-
-def get_bad_phrases_regex(bad_phrases):
-    """Returns regex pattern that recognizes phrase patterns regardless of whitespace characters in between
+def get_file_content(file_name):
+    """
+    Args: 
+        file_name (str): name of the text file
     
-    Args:
-        bad_phrases (list): list of blacklisted phrases
-        
-    Returns:
-        list: list of regex for blacklisted phrases
+    Returns: 
+        str: content of the text file
     """
     
-    bad_phrases_regex = []
-    
-    for phrase in bad_phrases:
-        phrase = phrase.replace(" ", "")
-        phrase = "".join(x + "\s*" for x in phrase)
-        bad_phrases_regex.append(phrase)
+    with open(file_name, encoding="utf-8") as file:
+        file_content = file.read() # string
         
-    return bad_phrases_regex
-
-def remove_bad_phrases(file_content, bad_phrases_regex):
-    """Removes phrases using regex
-    
-    Args:
-        file_content (str): text content 
-        bad_phrases (list): list of phrases to remove
-        
-    Returns:
-        str: the text content with bad phrases removed 
-    """
-    
-    for phrase in bad_phrases_regex: 
-        file_content = re.sub(phrase, '', file_content)
-    
     return file_content
+
+def get_year(file_content, file_name):
+    """
+    Args: 
+        file_content (str): content of the text file
+        file_name (str): name of the text file
+    
+    Returns:
+        int: year of the exam; NaN if the year is not found
+    """
+    # search content of the file
+    year_regex = "\d+"
+    for match in re.finditer(year_regex, file_content):
+        value = match.group(0)
+        if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
+            return int(value)
+    
+    # search the name of the file
+    for match in re.finditer("\d+", file_name): # all numbers in a str
+        value = match.group(0)
+        if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
+            return int(value)
+        elif len(value) == 2:
+            if int(value) <= int(str(LATEST_YEAR)[-2:]):
+                return int("20" + value)
+            elif int(value) >= int(str(EARLIEST_YEAR)[-2:]):
+                return int("19" + value)
+            
+    return np.NaN
 
 def get_questions(file_content, file_regex):
     """Gets a list of questions
@@ -82,33 +86,26 @@ def get_questions(file_content, file_regex):
         count += 1
 
     return questions    
-    
-def get_year(file_name, file_content):
-    # search content of the file
-    year_regex = "\d+"
-    for match in re.finditer(year_regex, file_content):
-        if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
-            return match
-    
-    # search the name of the file
-    for match in re.finditer("\d+", file_name): # all numbers in a str
-        value = match.group(0)
-        if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
-            return int(value)
-        elif len(value) == 2:
-            if int(value) <= int(str(LATEST_YEAR)[-2:]):
-                return int("20" + value)
-            elif int(value) >= int(str(EARLIEST_YEAR)[-2:]):
-                return int("19" + value)
-            
-    return np.NaN
 
 def get_question_type(year):
-    if year >= 2017:
+    """
+    Args:
+        year (int): year of the exam
+    
+    Returns:
+        question_type (list): type of each FRQ (SAQ, DBQ, LEQ)
+        question_number (list): question number of each FRQ as given in the text
+    """
+    
+    if np.isnan(year): 
+        return [np.nan for i in range(10)], [np.nan for i in range(10)]
+    
+    elif year >= 2017:
         questions = [["SAQ", "1"], ["SAQ", "2"],
                     ["SAQ", "3"], ["SAQ", "4"],
                     ["DBQ", "1"], ["LEQ", "2"],
                     ["LEQ", "3"], ["LEQ", "4"]]
+    
     else:
         questions = [["DBQ", "1"], ["LEQ", "2"], ["LEQ", "3"]]
     
@@ -117,17 +114,50 @@ def get_question_type(year):
     
     return question_type, question_number
 
-# MAIN defines the path at test-data/{file_name}
-def main(file_name, file_regex):
-    
-    with open(f'test-data/{file_name}', encoding="utf-8") as file:
-        file_content = file.read() # string
-        file_content = remove_bad_phrases(file_content, get_bad_phrases_regex(initial_bad_phrases))
-        questions = get_questions(file_content, file_regex)
+def get_df(year, questions, question_type, question_number):
+    """
+    Args:
+        year (int): year of exam
+        questions (list): list of FRQs in order
+        question_type (list): list of the type of each FRQ 
+        question_number (list): list of the question number of each FRQ 
         
-    return questions
+    Returns:
+        pd.DataFrame: df of the FRQs for a given year
+    """
+    
+    columns = ["question", "question_type", "question_number", "year"]
+    df = pd.DataFrame(columns=columns)
+    
+    count = 0
+    while count < len(questions):
+        df.loc[count + 1] = [questions[count], question_type[count], question_number[count], year]
+        count += 1
 
-print(main(file_name, file_regex))
+    return df
+    
+def create_csv(df, file_name):
+    """
+    Args:
+        df (pd.DataFrame): df of the FRQs 
+        file_name: path to the csv file to be edited 
+    """
+    
+    with open(f"{file_name}", "w+") as file:
+        df.to_csv(file)
+    
+def main(data_file_name, file_regex, output_file_name):
+    
+    file_content = preprocess_file_content(get_file_content(data_file_name))
+    
+    year = get_year(file_content, data_file_name)    
+    questions = get_questions(file_content, file_regex)
+    question_type, question_number = get_question_type(year)
+    
+    df = get_df(year, questions, question_type, question_number)
+    create_csv(df, output_file_name)
+    
+main("./test-data/ap19-frq-world-history.txt", file_regex, "test.csv")
                     
 # ^([0-9]\.\s)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s))$
 # re.M
