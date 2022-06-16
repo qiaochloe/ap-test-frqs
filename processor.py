@@ -79,7 +79,7 @@ def get_sources(file_content, sources_regex):
 
 
 doc_regex = r"^(Document\s*)(\d)(.*?)(?=(Document|END))"
-sources_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)([1-9])\.)"
+sources_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
 
 
 def get_sources_df(file_content):
@@ -276,7 +276,10 @@ def main(exam, question_regex):
     questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
     create_csv(questions_dfs, f"{exam}/questions.csv")
 
-
+#with open("test.txt", "w+") as file:
+#    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
+#    file.write(content)
+    
 main(
     "ap-world-history",
     "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
