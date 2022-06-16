@@ -1,7 +1,7 @@
 # TODO: check 2013, 2001, 
 
 import re
-from helper import get_file_content
+from helper import get_file_content, remove_phrases
 
 begin_response_phrase = ["BeginyourresponsetothisquestionatthetopofanewpageintheseparateFreeResponsebooklet",
                          "andfillintheappropriatecircleatthetopofeachpagetoindicatethequestionnumber"]
@@ -67,24 +67,6 @@ def get_phrases_regex(phrases):
         phrases_regex.append(phrase)
     
     return phrases_regex    
-    
-# remove "STOP"
-def remove_phrases(file_content, *regex_lists, regex_flags=re.I|re.M):
-    """Removes phrases using regex
-    
-    Args:
-        file_content (str): text content 
-        regex_lists (list): list of regex to remove phrases by
-        
-    Returns:
-        str: the text content with phrases removed 
-    """
-    
-    for regex_list in regex_lists:
-        for regex in regex_list: 
-            file_content = re.sub(regex, '', file_content, flags=regex_flags)
-    
-    return file_content
 
 all_phrases_regex = get_phrases_regex(all_phrases)
 case_sensitive_regex = get_phrases_regex(case_sensitive_phrases)
@@ -95,7 +77,3 @@ def preprocess_file_content(file_content):
     file_content = remove_phrases(file_content, other_regex, regex_flags=re.I|re.M|re.S)
     file_content = remove_phrases(file_content, case_sensitive_regex, regex_flags=re.M)
     return file_content
-
-#with open("test.txt", "a+") as file:
-#    a = preprocess_file_content(get_file_content("./ap-world-history/pdf-text/ap13_frq_world_history.txt"))
-#    file.write(a)

@@ -1,6 +1,4 @@
 # TODO: 
-# Filter file_content by the doc_regex and sources_regex
-# before passing it into get_questions()
 # Clean the sources.csv
 # Separate APWH-specific parts from the functions (make them reuseable)
 
@@ -9,7 +7,7 @@ import pandas as pd
 import numpy as np
 from datetime import date
 from preprocessor import preprocess_file_content
-from helper import get_file_content
+from helper import get_file_content, remove_phrases
 from os import listdir
 
 
@@ -48,8 +46,7 @@ def get_year(file_content):
 # ----------------- #
 
 
-def get_documents(file_content):
-    doc_regex = "^(Document\s*)(\d)(.*?)(?=Document|END)"
+def get_documents(file_content, doc_regex):
 
     year = get_year(file_content)
     docs = []
@@ -64,9 +61,7 @@ def get_documents(file_content):
     return docs
 
 
-def get_sources(file_content):
-    sources_regex = "^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)([1-9])\.)"
-
+def get_sources(file_content, sources_regex):
     year = get_year(file_content)
     sources = []
 
@@ -83,6 +78,10 @@ def get_sources(file_content):
     return sources
 
 
+doc_regex = r"^(Document\s*)(\d)(.*?)(?=(Document|END))"
+sources_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)([1-9])\.)"
+
+
 def get_sources_df(file_content):
     columns = [
         "source_content",
@@ -93,9 +92,16 @@ def get_sources_df(file_content):
     ]
 
     df = pd.DataFrame(
-        [*get_documents(file_content), *get_sources(file_content)], columns=columns
+        [*get_documents(file_content, doc_regex), *get_sources(file_content, sources_regex)], columns=columns
     )
     return df
+
+
+def remove_sources(file_content):
+    file_content = remove_phrases(file_content, [doc_regex], regex_flags=re.M|re.S)
+    file_content = remove_phrases(file_content, [sources_regex], regex_flags=re.M|re.S)
+    
+    return file_content
 
 
 # ------------ #
@@ -253,25 +259,22 @@ def create_csv(df, file_name):
 
 def main(exam, question_regex):
     files = get_files(f"{exam}/pdf-text")
-
-    questions_dfs_list = [
-        get_questions_df(
-            preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}")),
-            question_regex,
-        )
-        for file in files
-    ]
-    questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
-    create_csv(questions_dfs, f"{exam}/questions.csv")
-
-    sources_dfs_list = [
-        get_sources_df(
-            preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}"))
-        )
-        for file in files
-    ]
+    
+    sources_dfs_list = []
+    questions_dfs_list = []
+    
+    for file in files:
+        file_content = preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}"))
+        sources_dfs_list.append(get_sources_df(file_content))                                       
+        
+        file_content = remove_sources(file_content)
+        questions_dfs_list.append(get_questions_df(file_content, question_regex))
+        
     sources_dfs = pd.concat(sources_dfs_list, ignore_index=True, sort=False)
     create_csv(sources_dfs, f"{exam}/sources.csv")
+
+    questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
+    create_csv(questions_dfs, f"{exam}/questions.csv")
 
 
 main(
