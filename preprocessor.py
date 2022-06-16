@@ -1,6 +1,7 @@
 # TODO: check 2013, 2001, 
 
 import re
+from helper import get_file_content
 
 begin_response_phrase = ["BeginyourresponsetothisquestionatthetopofanewpageintheseparateFreeResponsebooklet",
                          "andfillintheappropriatecircleatthetopofeachpagetoindicatethequestionnumber"]
@@ -94,3 +95,7 @@ def preprocess_file_content(file_content):
     file_content = remove_phrases(file_content, other_regex, regex_flags=re.I|re.M|re.S)
     file_content = remove_phrases(file_content, case_sensitive_regex, regex_flags=re.M)
     return file_content
+
+#with open("test.txt", "a+") as file:
+#    a = preprocess_file_content(get_file_content("./ap-world-history/pdf-text/ap13_frq_world_history.txt"))
+#    file.write(a)
