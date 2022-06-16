@@ -1,3 +1,9 @@
+# TODO: 
+# Filter file_content by the doc_regex and sources_regex
+# before passing it into get_questions()
+# Clean the sources.csv
+# Separate APWH-specific parts from the functions (make them reuseable)
+
 import re
 import pandas as pd
 import numpy as np
@@ -35,6 +41,66 @@ def get_year(file_content):
             return value
 
     return np.NaN
+
+
+# ----------------- #
+# GET SOURCES.CSV #
+# ----------------- #
+
+
+def get_documents(file_content):
+    doc_regex = "^(Document\s*)(\d)(.*?)(?=Document|END)"
+
+    year = get_year(file_content)
+    docs = []
+
+    for match in re.finditer(doc_regex, file_content, flags=re.M | re.S):
+        doc_number = match.group(2)
+        doc_content = match.group(3)
+        question_type = "DBQ"
+        question_number = "1"
+        docs.append([doc_content, doc_number, question_type, question_number, year])
+
+    return docs
+
+
+def get_sources(file_content):
+    sources_regex = "^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)([1-9])\.)"
+
+    year = get_year(file_content)
+    sources = []
+
+    for match in re.finditer(sources_regex, file_content, flags=re.M | re.S):
+        source_content = match.group(3)
+        source_number = "0"
+        # source_type =  match.group(2)
+        question_type = "SAQ"
+        question_number = match.group(5)
+        sources.append(
+            [source_content, source_number, question_type, question_number, year]
+        )
+
+    return sources
+
+
+def get_sources_df(file_content):
+    columns = [
+        "source_content",
+        "source_number",
+        "question_type",
+        "question_number",
+        "year",
+    ]
+
+    df = pd.DataFrame(
+        [*get_documents(file_content), *get_sources(file_content)], columns=columns
+    )
+    return df
+
+
+# ------------ #
+# GET DATA.CSV #
+# ------------ #
 
 
 def get_questions(file_content, question_regex):
@@ -156,8 +222,6 @@ def get_questions_df(file_content, question_regex):
     columns = ["question", "question_type", "question_number", "year"]
     df = pd.DataFrame(columns=columns)
 
-    # len(questions), len(question_type), len(question_number)
-
     count = 0
     while count < len(questions):
         df.loc[count + 1] = [
@@ -179,7 +243,7 @@ def get_files(dir_name):
 def create_csv(df, file_name):
     """
     Args:
-        df (pd.DataFrame): df of the FRQs
+        df (pd.DataFrame): df
         file_name: path to the csv file to be edited
     """
 
@@ -190,22 +254,33 @@ def create_csv(df, file_name):
 def main(exam, question_regex):
     files = get_files(f"{exam}/pdf-text")
 
-    file_dfs = [
+    questions_dfs_list = [
         get_questions_df(
             preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}")),
             question_regex,
         )
         for file in files
     ]
-    output_df = pd.concat(file_dfs, ignore_index=True, sort=False)
-    create_csv(output_df, f"{exam}/data.csv")
+    questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
+    create_csv(questions_dfs, f"{exam}/questions.csv")
+
+    sources_dfs_list = [
+        get_sources_df(
+            preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}"))
+        )
+        for file in files
+    ]
+    sources_dfs = pd.concat(sources_dfs_list, ignore_index=True, sort=False)
+    create_csv(sources_dfs, f"{exam}/sources.csv")
 
 
 main(
     "ap-world-history",
-    "^([0-9]\.)(.*?)((?=\n[0-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
+    "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
 )
 
+
+#"^(((Use)(.*?)(answer)(.*?)(question that follows\.)))(.*?)([0-9]\.)"
 # a = preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap16_frq_world_history.txt"))
 
 # with open("test.txt", "w+") as file:
