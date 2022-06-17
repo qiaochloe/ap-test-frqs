@@ -1,6 +1,8 @@
-# TODO: 
-# Clean the sources.csv
-# Separate APWH-specific parts from the functions (make them reuseable)
+# TODO:
+# Put self. in front of all the function and variable calls
+# Sort out the main() function
+# Make sure the "correct" file_content is being passed
+# to get_sources_df and get_questions_df
 
 import re
 import pandas as pd
@@ -10,23 +12,27 @@ from preprocessor import preprocess_file_content
 from helper import get_file_content, remove_phrases
 from os import listdir
 
-class Exam: 
+
+class Exam:
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self.file_content = get_file_content(self.file_name)
+
+    @staticmethod
     def get_latest_year():
         if date.today().month > 6:
             latest_year = date.today().year
         else:
             latest_year = date.today().year - 1
         return latest_year
-    
-    
-    earliest_year = 1954
-    latest_year = get_latest_year()
-    
-    doc_regex = r"^(Document\s*)(\d)(.*?)(?=(Document|END))"
-    sources_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"    
 
-    
-    def get_year(file_content):
+    earliest_year = 1954
+    latest_year = Exam.get_latest_year()
+
+    doc_regex = r"^(Document\s*)(\d)(.*?)(?=(Document|END))"
+    sources_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
+
+    def get_year(self):
         """
         Args:
             file_content (str): content of the text file
@@ -40,12 +46,10 @@ class Exam:
             if len(value) == 4 and earliest_year <= int(value) <= latest_year:
                 return value
         return np.NaN
-    
-    
+
     def get_files(dir_name):
         files = [file for file in listdir(dir_name) if file.endswith(".txt")]
         return files
-
 
     def create_csv(df, file_name):
         """
@@ -59,13 +63,21 @@ class Exam:
 
 
 class WorldHistory(Exam):
+
     exam = "ap-world-history"
     earliest_year = 2002
     doc_regex = r"^(Document\s*)(\d)(.*?)(?=(Document|END))"
     sources_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
-    question_regex = "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",    
-    
-    def get_documents(file_content):
+    question_regex = (
+        r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$"
+    )
+
+    def __init__(self, file_name):
+        super().__init__(file_name) # file_name, file_content
+        self.sources_df = self.get_sources_df()
+        self.questions_df = self.get_questions_df()
+
+    def get_documents(self):
         year = get_year(file_content)
         docs = []
         for match in re.finditer(doc_regex, file_content, flags=re.M | re.S):
@@ -75,8 +87,8 @@ class WorldHistory(Exam):
             question_number = "1"
             docs.append([doc_content, doc_number, question_type, question_number, year])
         return docs
-    
-    def get_sources(file_content):
+
+    def get_sources(self):
         year = get_year(file_content)
         sources = []
         for match in re.finditer(sources_regex, file_content, flags=re.M | re.S):
@@ -89,8 +101,8 @@ class WorldHistory(Exam):
                 [source_content, source_number, question_type, question_number, year]
             )
         return sources
-    
-    def get_sources_df(file_content):
+
+    def get_sources_df(self):
         columns = [
             "source_content",
             "source_number",
@@ -102,13 +114,17 @@ class WorldHistory(Exam):
             [*get_documents(file_content), *get_sources(file_content)], columns=columns
         )
         return df
-    
-    def remove_sources(file_content):
-        file_content = remove_phrases(file_content, [doc_regex], regex_flags=re.M|re.S)
-        file_content = remove_phrases(file_content, [sources_regex], regex_flags=re.M|re.S)
+
+    def remove_sources(self):
+        file_content = remove_phrases(
+            file_content, [doc_regex], regex_flags=re.M | re.S
+        )
+        file_content = remove_phrases(
+            file_content, [sources_regex], regex_flags=re.M | re.S
+        )
         return file_content
 
-    def get_questions(file_content):
+    def get_questions(self):
         """Gets a list of questions
 
         Args:
@@ -121,7 +137,9 @@ class WorldHistory(Exam):
 
         questions = []
         count = 0
-        for match in re.finditer(question_regex, file_content, flags=re.I | re.M | re.S):
+        for match in re.finditer(
+            question_regex, file_content, flags=re.I | re.M | re.S
+        ):
             question = match.group(2)  # string
             # remove a) b) c) and convert to subquestions list
             question = re.sub("^[abc]\)\s", "", question, flags=re.I | re.M | re.S)
@@ -141,7 +159,7 @@ class WorldHistory(Exam):
             count += 1
         return questions
 
-    def get_question_type(year):
+    def get_question_type(self):
         """
         Args:
             year (str): year of the exam
@@ -176,15 +194,16 @@ class WorldHistory(Exam):
             ]
         else:
             questions = [["DBQ", "1"], ["LEQ", "2"], ["LEQ", "3"]]
-            
+
         question_type = [question[0] for question in questions]
         question_number = [question[1] for question in questions]
         return question_type, question_number
 
     # turn this into unpacking *args
-    def fill_in_nan(questions, question_type, question_number):
+    def fill_in_nan(self):
         series = [
-            pd.Series(lst, dtype=str) for lst in [questions, question_type, question_number]
+            pd.Series(lst, dtype=str)
+            for lst in [questions, question_type, question_number]
         ]
         df = pd.concat(series, axis=1)  # fills in NaN
 
@@ -194,8 +213,7 @@ class WorldHistory(Exam):
 
         return questions, question_type, question_number
 
-
-    def get_questions_df(file_content):
+    def get_questions_df(self):
         """
         Args:
             file_content: content of the file
@@ -211,10 +229,10 @@ class WorldHistory(Exam):
         questions, question_type, question_number = fill_in_nan(
             questions, question_type, question_number
         )
-        
+
         columns = ["question", "question_type", "question_number", "year"]
         df = pd.DataFrame(columns=columns)
-        
+
         count = 0
         while count < len(questions):
             df.loc[count + 1] = [
@@ -226,34 +244,36 @@ class WorldHistory(Exam):
             count += 1
         return df
 
-
-    def main(exam):
+    def main(self):
         files = get_files(f"{exam}/pdf-text")
-        
+
         sources_dfs_list = []
         questions_dfs_list = []
-        
+
         for file in files:
-            file_content = preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}"))
-            sources_dfs_list.append(get_sources_df(file_content))                                       
-            
+            file_content = preprocess_file_content(
+                get_file_content(f"{exam}/pdf-text/{file}")
+            )
+            sources_dfs_list.append(get_sources_df(file_content))
+
             file_content = remove_sources(file_content)
             questions_dfs_list.append(get_questions_df(file_content))
-            
+
         sources_dfs = pd.concat(sources_dfs_list, ignore_index=True, sort=False)
         create_csv(sources_dfs, f"{exam}/sources.csv")
 
         questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
         create_csv(questions_dfs, f"{exam}/questions.csv")
 
-#with open("test.txt", "w+") as file:
+
+# with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
 #    file.write(content)
-    
+
 WorldHistory.main("ap-world-history")
 
 
-#"^(((Use)(.*?)(answer)(.*?)(question that follows\.)))(.*?)([0-9]\.)"
+# "^(((Use)(.*?)(answer)(.*?)(question that follows\.)))(.*?)([0-9]\.)"
 # a = preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap16_frq_world_history.txt"))
 
 # with open("test.txt", "w+") as file:
