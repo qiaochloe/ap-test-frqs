@@ -65,6 +65,14 @@ case_sensitive_regex = get_phrases_regex(case_sensitive_phrases)
 
 
 def preprocess_file_content(file_content):
+    """
+    Args:
+        file_content (str): content to be cleaned
+        
+    Returns:
+        str: cleaned file content 
+    """
+    
     file_content = remove_phrases(file_content, strip_spaces_regex)
     file_content = remove_phrases(file_content, all_phrases_regex)
     file_content = remove_phrases(file_content, headers_regex)

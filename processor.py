@@ -12,6 +12,10 @@ from os import listdir
 
 
 def get_latest_year():
+    """
+    Returns:
+        int: current year
+    """
     if date.today().month > 6:
         latest_year = date.today().year
     else:
@@ -47,7 +51,15 @@ def get_year(file_content):
 
 
 def get_documents(file_content, doc_regex):
-
+    """
+    Args:
+        file_content (str): content of the file
+        doc_regex (str): regex to get document content from the main file
+        
+    Returns:
+        list: list of all documents (in string form)
+    """
+    
     year = get_year(file_content)
     docs = []
 
@@ -62,6 +74,15 @@ def get_documents(file_content, doc_regex):
 
 
 def get_sources(file_content, sources_regex):
+    """
+    Args:
+        file_content (str): content of the file
+        sources_regex (str): regex to get sources content from the main file
+        
+    Returns:
+        list: list of all sources (in string form)
+    """
+    
     year = get_year(file_content)
     sources = []
 
@@ -83,6 +104,14 @@ sources_regex = r"^(Use the (.*?) to answer all parts of the question that follo
 
 
 def get_sources_df(file_content):
+    """
+    Args:
+        file_content (str): content of the file
+        
+    Returns:
+        pd.Dataframe: df of the documents and the sources
+    """
+    
     columns = [
         "source_content",
         "source_number",
@@ -98,6 +127,14 @@ def get_sources_df(file_content):
 
 
 def remove_sources(file_content):
+    """
+    Args: 
+        file_content
+    
+    Returns:
+        str: file content without the documents or sources
+    """
+    
     file_content = remove_phrases(file_content, [doc_regex], regex_flags=re.M|re.S)
     file_content = remove_phrases(file_content, [sources_regex], regex_flags=re.M|re.S)
     
@@ -195,7 +232,17 @@ def get_question_type(year):
 
 
 def fill_in_nan(questions, question_type, question_number):
-
+    """
+    Args:
+        questions (list): question from the file
+        question_type (list): type of question
+        question_number (list): number of question
+        
+    Returns:
+        list, list, list
+        Makes each list the same length by filling in NaN 
+    """
+    
     series = [
         pd.Series(lst, dtype=str) for lst in [questions, question_type, question_number]
     ]
@@ -242,6 +289,15 @@ def get_questions_df(file_content, question_regex):
 
 
 def get_files(dir_name):
+    """Gets the names of all the files in a directory
+    
+    Args:
+        dir_name (str): name of the directory
+        
+    Returns:
+        files (list): list of all files in the directory
+    """
+    
     files = [file for file in listdir(dir_name) if file.endswith(".txt")]
     return files
 
@@ -276,18 +332,17 @@ def main(exam, question_regex):
     questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
     create_csv(questions_dfs, f"{exam}/questions.csv")
 
+# TESTS
+
+#main(
+#    "ap-world-history",
+#    "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
+#)
+
 #with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
 #    file.write(content)
-    
-main(
-    "ap-world-history",
-    "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
-)
 
-
-#"^(((Use)(.*?)(answer)(.*?)(question that follows\.)))(.*?)([0-9]\.)"
 # a = preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap16_frq_world_history.txt"))
-
 # with open("test.txt", "w+") as file:
 #    file.write(a)
