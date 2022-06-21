@@ -1,4 +1,4 @@
-# TODO: 
+# TODO:
 # Clean the sources.csv
 # Separate APWH-specific parts from the functions (make them reuseable)
 
@@ -55,11 +55,11 @@ def get_documents(file_content, doc_regex):
     Args:
         file_content (str): content of the file
         doc_regex (str): regex to get document content from the main file
-        
+
     Returns:
         list: list of all documents (in string form)
     """
-    
+
     year = get_year(file_content)
     docs = []
 
@@ -78,11 +78,11 @@ def get_sources(file_content, sources_regex):
     Args:
         file_content (str): content of the file
         sources_regex (str): regex to get sources content from the main file
-        
+
     Returns:
         list: list of all sources (in string form)
     """
-    
+
     year = get_year(file_content)
     sources = []
 
@@ -107,11 +107,11 @@ def get_sources_df(file_content):
     """
     Args:
         file_content (str): content of the file
-        
+
     Returns:
         pd.Dataframe: df of the documents and the sources
     """
-    
+
     columns = [
         "source_content",
         "source_number",
@@ -121,23 +121,29 @@ def get_sources_df(file_content):
     ]
 
     df = pd.DataFrame(
-        [*get_documents(file_content, doc_regex), *get_sources(file_content, sources_regex)], columns=columns
+        [
+            *get_documents(file_content, doc_regex),
+            *get_sources(file_content, sources_regex),
+        ],
+        columns=columns,
     )
     return df
 
 
 def remove_sources(file_content):
     """
-    Args: 
+    Args:
         file_content
-    
+
     Returns:
         str: file content without the documents or sources
     """
-    
-    file_content = remove_phrases(file_content, [doc_regex], regex_flags=re.M|re.S)
-    file_content = remove_phrases(file_content, [sources_regex], regex_flags=re.M|re.S)
-    
+
+    file_content = remove_phrases(file_content, [doc_regex], regex_flags=re.M | re.S)
+    file_content = remove_phrases(
+        file_content, [sources_regex], regex_flags=re.M | re.S
+    )
+
     return file_content
 
 
@@ -186,7 +192,7 @@ def get_questions(file_content, question_regex):
     return questions
 
 
-def get_question_type(year):
+def get_question_type(exam, year):
     """
     Args:
         year (str): year of the exam
@@ -199,31 +205,44 @@ def get_question_type(year):
     if pd.isna(year):
         return [np.nan], [np.nan]
 
-    elif int(year) > 2017:
-        questions = [
-            ["SAQ", "1"],
-            ["SAQ", "2"],
-            ["SAQ", "3"],
-            ["SAQ", "4"],
-            ["DBQ", "1"],
-            ["LEQ", "2"],
-            ["LEQ", "3"],
-            ["LEQ", "4"],
-        ]
+    match exam:
+        case "ap-world-history":
+            if int(year) > 2017:
+                saq_range = range(1, 5)  # 1, 2, 3, 4
+                dbq_range = range(1, 2)  # 1
+                leq_range = range(2, 5)  # 2, 3, 4
+            elif int(year) == 2017:
+                saq_range = range(1, 5)
+                dbq_range = range(1, 2)
+                leq_range = range(2, 4)  # 2, 3
+            else:
+                saq_range = range(0)
+                dbq_range = range(1, 2)
+                leq_range = range(2, 4)
+            questions = (
+                [["SAQ", str(i)] for i in saq_range]
+                + [["DBQ", str(i)] for i in dbq_range]
+                + [["LEQ", str(i)] for i in leq_range]
+            )
 
-    elif int(year) == 2017:
-        questions = [
-            ["SAQ", "1"],
-            ["SAQ", "2"],
-            ["SAQ", "3"],
-            ["SAQ", "4"],
-            ["DBQ", "1"],
-            ["LEQ", "2"],
-            ["LEQ", "3"],
-        ]
-
-    else:
-        questions = [["DBQ", "1"], ["LEQ", "2"], ["LEQ", "3"]]
+        case "ap-european-history":
+            if int(year) > 2017:
+                saq_range = range(1, 5)
+                dbq_range = range(1, 2)
+                leq_range = range(2, 5)
+            elif int(year) == 2017:
+                saq_range = range(1, 5)
+                dbq_range = range(1, 2)
+                leq_range = range(2, 4)
+            else:
+                saq_range = range(0)
+                dbq_range = range(1, 2)
+                leq_range = range(2, 8)
+            questions = (
+                [["SAQ", str(i)] for i in saq_range]
+                + [["DBQ", str(i)] for i in dbq_range]
+                + [["LEQ", str(i)] for i in leq_range]
+            )
 
     question_type = [question[0] for question in questions]
     question_number = [question[1] for question in questions]
@@ -237,12 +256,12 @@ def fill_in_nan(questions, question_type, question_number):
         questions (list): question from the file
         question_type (list): type of question
         question_number (list): number of question
-        
+
     Returns:
         list, list, list
-        Makes each list the same length by filling in NaN 
+        Makes each list the same length by filling in NaN
     """
-    
+
     series = [
         pd.Series(lst, dtype=str) for lst in [questions, question_type, question_number]
     ]
@@ -255,9 +274,10 @@ def fill_in_nan(questions, question_type, question_number):
     return questions, question_type, question_number
 
 
-def get_questions_df(file_content, question_regex):
+def get_questions_df(exam, file_content, question_regex):
     """
     Args:
+        exam: name of the exam
         file_content: content of the file
         question_regex: regex to parse exam questions
 
@@ -267,7 +287,7 @@ def get_questions_df(file_content, question_regex):
 
     year = get_year(file_content)
     questions = get_questions(file_content, question_regex)
-    question_type, question_number = get_question_type(year)
+    question_type, question_number = get_question_type(exam, year)
     questions, question_type, question_number = fill_in_nan(
         questions, question_type, question_number
     )
@@ -290,14 +310,14 @@ def get_questions_df(file_content, question_regex):
 
 def get_files(dir_name):
     """Gets the names of all the files in a directory
-    
+
     Args:
         dir_name (str): name of the directory
-        
+
     Returns:
         files (list): list of all files in the directory
     """
-    
+
     files = [file for file in listdir(dir_name) if file.endswith(".txt")]
     return files
 
@@ -315,31 +335,34 @@ def create_csv(df, file_name):
 
 def main(exam, question_regex):
     files = get_files(f"{exam}/pdf-text")
-    
+
     sources_dfs_list = []
     questions_dfs_list = []
-    
+
     for file in files:
-        file_content = preprocess_file_content(get_file_content(f"{exam}/pdf-text/{file}"))
-        sources_dfs_list.append(get_sources_df(file_content))                                       
-        
+        file_content = preprocess_file_content(
+            get_file_content(f"{exam}/pdf-text/{file}")
+        )
+        sources_dfs_list.append(get_sources_df(file_content))
+
         file_content = remove_sources(file_content)
-        questions_dfs_list.append(get_questions_df(file_content, question_regex))
-        
+        questions_dfs_list.append(get_questions_df(exam, file_content, question_regex))
+
     sources_dfs = pd.concat(sources_dfs_list, ignore_index=True, sort=False)
     create_csv(sources_dfs, f"{exam}/sources.csv")
 
     questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
     create_csv(questions_dfs, f"{exam}/questions.csv")
 
+
 # TESTS
 
-#main(
-#    "ap-world-history",
-#    "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
-#)
+main(
+"ap-european-history",
+"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$",
+)
 
-#with open("test.txt", "w+") as file:
+# with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
 #    file.write(content)
 
