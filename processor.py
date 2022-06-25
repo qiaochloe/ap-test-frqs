@@ -62,6 +62,7 @@ class WorldHistoryExam(Exam):
     def get_documents(cls, year, file_content):
         """
         Args:
+            year (str): year of the exam
             file_content (str): content of the file
 
         Returns:
@@ -83,8 +84,8 @@ class WorldHistoryExam(Exam):
     def get_sources(cls, year, file_content):
         """
         Args:
+            year (str): year of the exam
             file_content (str): content of the file
-            source_regex (str): regex to get sources content from the main file
 
         Returns:
             list: list of all sources (in string form)
@@ -108,6 +109,7 @@ class WorldHistoryExam(Exam):
     def get_sources_df(cls, year, file_content):
         """
         Args:
+            year (str): year of the exam
             file_content (str): content of the file
 
         Returns:
@@ -135,7 +137,7 @@ class WorldHistoryExam(Exam):
     def remove_sources(cls, file_content):
         """
         Args:
-            file_content
+            file_content (str): content of the file
 
         Returns:
             str: file content without the documents or sources
@@ -190,7 +192,6 @@ class WorldHistoryExam(Exam):
 
         Args:
             file_content (str): content of the text file
-            question_regex (str): regex to parse file
 
         Returns:
             list: list of exam questions in chronological order (as they appear in the text)
@@ -252,9 +253,8 @@ class WorldHistoryExam(Exam):
     def get_questions_df(cls, year, file_content):
         """
         Args:
-            exam: name of the exam
-            file_content: content of the file
-            question_regex: regex to parse exam questions
+            year (str): year of the exam
+            file_content (str): content of the file
 
         Returns:
             pd.DataFrame: df of the FRQs for a given year
