@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 from datetime import date
 from preprocessor import preprocess_file_content
-from helper import get_file_content#, remove_phrases
 from os import listdir
 
         
@@ -336,6 +335,20 @@ def create_csv(df, file_name):
 
     with open(f"{file_name}", "w+") as file:
         df.to_csv(file, index=False)
+
+
+def get_file_content(file_name):
+    """
+    Args: 
+        file_name (str): name of the text file
+    
+    Returns: 
+        str: content of the text file
+    """
+    
+    with open(file_name, encoding="utf-8") as file:
+        file_content = file.read() # string
+    return file_content
 
 
 def main(exam):

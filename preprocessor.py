@@ -1,7 +1,6 @@
 # TODO: check 2013, 2001,
 
 import re
-from helper import get_file_content, remove_phrases
 
 begin_response_phrase = [
     "BeginyourresponsetothisquestionatthetopofanewpageintheseparateFreeResponsebooklet",
@@ -41,6 +40,7 @@ strip_spaces_regex = ["^ (?=\d)"]
 headers_regex = ["SECTION [I]", "Part [ABC]"]
 other_regex = ["-\d+-", "^(Percent of)(.*?)(score.)(\s*)(.*?)(\s*?)$"]
 
+
 def get_phrases_regex(phrases):
     """Returns regex pattern that recognizes phrase patterns regardless of whitespace characters in between
 
@@ -62,6 +62,25 @@ def get_phrases_regex(phrases):
 
 all_phrases_regex = get_phrases_regex(all_phrases)
 case_sensitive_regex = get_phrases_regex(case_sensitive_phrases)
+
+
+def remove_phrases(file_content, regex_list, regex_flags=re.I|re.M):
+    """Removes phrases using regex
+    
+    Args:
+        file_content (str): text content 
+        regex_list (list): list of regex to remove phrases by
+        regex_flags
+        
+    Returns:
+        str: the text content with phrases removed 
+    """
+    
+    if type(regex_list) is not list:
+        regex_list = [regex_list]
+    for regex in regex_list: 
+        file_content = re.sub(regex, '', file_content, flags=regex_flags)
+    return file_content
 
 
 def preprocess_file_content(file_content):
