@@ -376,10 +376,10 @@ def main(exam):
     question_dfs_list = []
 
     for file in files:
-        file_content = preprocess_file_content(
-            get_file_content(f"{exam.name}/pdf-text/{file}")
-        )
+        file_content = get_file_content(f"{exam.name}/pdf-text/{file}")
         year = exam.get_year(file, file_content)
+        
+        file_content = preprocess_file_content(file_content)
         source_dfs_list.append(exam.get_source_df(file, year, file_content))
 
         file_content = exam.remove_sources(file_content)
