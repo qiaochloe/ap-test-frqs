@@ -15,7 +15,7 @@ class Exam:
     latest_year = date.today().year if date.today().month > 6 else date.today().year - 1
     
     @classmethod
-    def get_year(cls, file_content):
+    def get_year(cls, file_name, file_content):
         """
         Args:
             file_content (str): content of the text file
@@ -29,6 +29,17 @@ class Exam:
             value = match.group(0)
             if len(value) == 4 and cls.earliest_year <= int(value) <= cls.latest_year:
                 return value
+
+        # search the name of the file
+        for match in re.finditer("\d+", file_name): # all numbers in a str
+            value = match.group(0)
+            if len(value) == 4 and EARLIEST_YEAR <= int(value) <= LATEST_YEAR:
+                return value
+            elif len(value) == 2:
+                if int(value) <= int(str(LATEST_YEAR)[-2:]):
+                    return "20" + value
+                elif int(value) >= int(str(EARLIEST_YEAR)[-2:]):
+                    return "19" + value
 
         return np.NaN
     
@@ -361,7 +372,7 @@ def main(exam):
         file_content = preprocess_file_content(
             get_file_content(f"{exam.name}/pdf-text/{file}")
         )
-        year = exam.get_year(file_content)
+        year = exam.get_year(file, file_content)
         sources_dfs_list.append(exam.get_sources_df(year, file_content))
 
         file_content = exam.remove_sources(file_content)
@@ -376,8 +387,11 @@ def main(exam):
 
 # TESTS
 
-euro = EuropeanHistoryExam()
-main(euro)
+#euro = EuropeanHistoryExam()
+#main(euro)
+
+apwh = WorldHistoryExam()
+main(apwh)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
