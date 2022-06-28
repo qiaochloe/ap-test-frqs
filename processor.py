@@ -18,6 +18,7 @@ class Exam:
     def get_year(cls, file_name, file_content):
         """
         Args:
+            file_name (str): name of the text file
             file_content (str): content of the text file
 
         Returns:
@@ -69,9 +70,10 @@ class WorldHistoryExam(Exam):
     question_regex = r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$"
     
     @classmethod
-    def get_documents(cls, year, file_content):
+    def get_documents(cls, file_name, year, file_content):
         """
         Args:
+            file_name (str): name of the text file
             year (str): year of the exam
             file_content (str): content of the file
 
@@ -86,14 +88,15 @@ class WorldHistoryExam(Exam):
             doc_content = match.group(3)
             question_type = "DBQ"
             question_number = "1"
-            docs.append([doc_content, doc_number, question_type, question_number, year])
+            docs.append([doc_content, doc_number, question_type, question_number, year, file_name])
 
         return docs
     
     @classmethod
-    def get_sources(cls, year, file_content):
+    def get_sources(cls, file_name, year, file_content):
         """
         Args:
+            file_name (str): name of the text file
             year (str): year of the exam
             file_content (str): content of the file
 
@@ -110,15 +113,16 @@ class WorldHistoryExam(Exam):
             question_type = "SAQ"
             question_number = match.group(5)
             sources.append(
-                [source_content, source_number, question_type, question_number, year]
+                [source_content, source_number, question_type, question_number, year, file_name]
             )
 
         return sources
 
     @classmethod
-    def get_sources_df(cls, year, file_content):
+    def get_source_df(cls, file_name, year, file_content):
         """
         Args:
+            file_name (str): name of the text file
             year (str): year of the exam
             file_content (str): content of the file
 
@@ -132,12 +136,13 @@ class WorldHistoryExam(Exam):
             "question_type",
             "question_number",
             "year",
+            "file_name"
         ]
 
         df = pd.DataFrame(
             [
-                *cls.get_documents(year, file_content),
-                *cls.get_sources(year, file_content),
+                *cls.get_documents(file_name, year, file_content),
+                *cls.get_sources(file_name, year, file_content),
             ],
             columns=columns,
         )
@@ -260,11 +265,12 @@ class WorldHistoryExam(Exam):
         return questions, question_type, question_number
     
     @classmethod
-    def get_questions_df(cls, year, file_content):
+    def get_question_df(cls, file_name, year, file_content):
         """
         Args:
+            file_name (str): name of the file
             year (str): year of the exam
-            file_content (str): content of the file
+            file_content (str): content of the text file
 
         Returns:
             pd.DataFrame: df of the FRQs for a given year
@@ -276,7 +282,7 @@ class WorldHistoryExam(Exam):
             questions, question_type, question_number
         )
 
-        columns = ["question", "question_type", "question_number", "year"]
+        columns = ["question", "question_type", "question_number", "year", "file_name"]
         df = pd.DataFrame(columns=columns)
 
         count = 0
@@ -286,6 +292,7 @@ class WorldHistoryExam(Exam):
                 question_type[count],
                 question_number[count],
                 year,
+                file_name
             ]
             count += 1
 
@@ -365,24 +372,24 @@ def get_file_content(file_name):
 def main(exam):
     files = get_files(f"{exam.name}/pdf-text")
 
-    sources_dfs_list = []
-    questions_dfs_list = []
+    source_dfs_list = []
+    question_dfs_list = []
 
     for file in files:
         file_content = preprocess_file_content(
             get_file_content(f"{exam.name}/pdf-text/{file}")
         )
         year = exam.get_year(file, file_content)
-        sources_dfs_list.append(exam.get_sources_df(year, file_content))
+        source_dfs_list.append(exam.get_source_df(file, year, file_content))
 
         file_content = exam.remove_sources(file_content)
-        questions_dfs_list.append(exam.get_questions_df(year, file_content))
+        question_dfs_list.append(exam.get_question_df(file, year, file_content))
 
-    sources_dfs = pd.concat(sources_dfs_list, ignore_index=True, sort=False)
-    create_csv(sources_dfs, f"{exam.name}/sources.csv")
+    source_dfs = pd.concat(source_dfs_list, ignore_index=True, sort=False)
+    create_csv(source_dfs, f"{exam.name}/source.csv")
 
-    questions_dfs = pd.concat(questions_dfs_list, ignore_index=True, sort=False)
-    create_csv(questions_dfs, f"{exam.name}/questions.csv")
+    question_dfs = pd.concat(question_dfs_list, ignore_index=True, sort=False)
+    create_csv(question_dfs, f"{exam.name}/question.csv")
 
 
 # TESTS
