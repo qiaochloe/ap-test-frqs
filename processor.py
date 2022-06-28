@@ -344,17 +344,6 @@ def get_files(dir_name):
     return files
 
 
-def create_csv(df, file_name):
-    """
-    Args:
-        df (pd.DataFrame): df
-        file_name: path to the csv file to be edited
-    """
-
-    with open(f"{file_name}", "w+") as file:
-        df.to_csv(file, index=False)
-
-
 def get_file_content(file_name):
     """
     Args: 
@@ -367,6 +356,29 @@ def get_file_content(file_name):
     with open(file_name, encoding="utf-8") as file:
         file_content = file.read() # string
     return file_content
+
+
+def create_csv(df, file_name):
+    """
+    Args:
+        df (pd.DataFrame): df
+        file_name: path to the csv file to be edited
+    """
+
+    with open(f"{file_name}", "w+") as file:
+        df.to_csv(file, index=False)
+
+
+def clean_csv_questions(df):
+    def clean_question(question):
+        try:
+            question = question.strip().replace("  ", " ")
+            question = re.sub("^[\dabc](\)|\.)", "", question, flags=re.I|re.M)
+        finally:
+            return question
+    
+    df["question"] = df["question"].apply(clean_question)
+    return df
 
 
 def main(exam):
@@ -386,19 +398,20 @@ def main(exam):
         question_dfs_list.append(exam.get_question_df(file, year, file_content))
 
     source_dfs = pd.concat(source_dfs_list, ignore_index=True, sort=False)
-    create_csv(source_dfs, f"{exam.name}/source.csv")
-
     question_dfs = pd.concat(question_dfs_list, ignore_index=True, sort=False)
+    question_dfs = clean_csv_questions(question_dfs)
+    
+    create_csv(source_dfs, f"{exam.name}/source.csv")
     create_csv(question_dfs, f"{exam.name}/question.csv")
 
 
 # TESTS
 
-#euro = EuropeanHistoryExam()
-#main(euro)
+euro = EuropeanHistoryExam()
+main(euro)
 
-apwh = WorldHistoryExam()
-main(apwh)
+#apwh = WorldHistoryExam()
+#main(apwh)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
