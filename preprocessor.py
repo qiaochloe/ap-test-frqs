@@ -1,4 +1,4 @@
-# TODO: check 2013, 2001,
+# Fix historical background phrase
 
 import re
 
@@ -23,7 +23,7 @@ directions_phrase = [
 end_of_question_phrase = [
     "WHEN YOUFINISH WRITING,CHECK YOUR WORKONSECTIONIIIF TIMEPERMITS"
 ]
-historical_background_phrase = ["Historical background:"]
+#historical_background_phrase = ["Historical background:"]
 keywords = ["College Board", "Directions:"]
 
 all_phrases = (
@@ -31,7 +31,7 @@ all_phrases = (
     + next_page_phrase
     + directions_phrase
     + end_of_question_phrase
-    + historical_background_phrase
+    #+ historical_background_phrase
     + keywords
 )
 
