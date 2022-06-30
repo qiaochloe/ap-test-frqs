@@ -24,7 +24,7 @@ end_of_question_phrase = [
     "WHEN YOUFINISH WRITING,CHECK YOUR WORKONSECTIONIIIF TIMEPERMITS"
 ]
 #historical_background_phrase = ["Historical background:"]
-keywords = ["College Board", "Directions:"]
+keywords = ["College Board", "Directions:", "College Entrance Examination Board", "All rights reserved"]
 
 all_phrases = (
     begin_response_phrase
