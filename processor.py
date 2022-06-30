@@ -1,12 +1,11 @@
 # TODO:
-# Clean the sources.csv
-# Separate APWH-specific parts from the functions (make them reuseable)
-
-# TODO:
 # get link to scoring guidelines PDF
 # add "Source:" as a header for a document; remove before getting questions
 # add section for "Historical Background:"; also remove before getting questions
 # consider serving regex as tuples (for the flags)
+
+# TODO:
+# Check why source_content (match group 3) sometimes returns a number
 
 import re
 import pandas as pd
@@ -333,20 +332,22 @@ class WorldHistoryExam(Exam):
         return df
 
     @staticmethod
-    def clean_questions(df):
-        def strip_chars(question):
+    def strip_df(df, key):
+        def strip_chars(text):
             try:
-                question = question.strip().replace("  ", " ")
-                question = re.sub("^[\dabc](\)|\.)", "", question, flags=re.I | re.M)
+                text = text.strip().replace("  ", " ")
+                text = re.sub("\n", "", text)
+                text = re.sub("^[\dabc](\)|\.)", "", text, flags=re.I | re.M)
             finally:
-                return question
+                return text
 
-        df["question"] = df["question"].apply(strip_chars)
+        df[f"{key}"] = df[f"{key}"].apply(strip_chars)
         return df
 
     @classmethod
     def postprocessor(cls, question_df, source_df):
-        question_df = cls.clean_questions(question_df)
+        question_df = cls.strip_df(question_df, "question")
+        source_df = cls.strip_df(source_df, "source_content")
         return question_df, source_df
 
 
@@ -407,7 +408,9 @@ class EuropeanHistoryExam(WorldHistoryExam):
 
     @classmethod
     def postprocessor(cls, question_df, source_df):
-        question_df = cls.clean_questions(question_df)
+        question_df = cls.strip_df(question_df, "question")
+        source_df = cls.strip_df(source_df, "source_content")
+
         question_df = cls.patch_one(question_df)
         return question_df, source_df
 
