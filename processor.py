@@ -452,6 +452,10 @@ class EuropeanHistoryExam(WorldHistoryExam):
         return question_df, source_df
 
 
+class UnitedStatesHistoryExam(WorldHistoryExam):
+    name = "ap-united-states-history"
+
+
 def get_files(dir_name):
     """Gets the names of all the files in a directory
 
@@ -518,11 +522,14 @@ def main(exam):
 
 # TESTS
 
-euro = EuropeanHistoryExam()
-main(euro)
+# euro = EuropeanHistoryExam()
+# main(euro)
 
 # apwh = WorldHistoryExam()
 # main(apwh)
+
+apush = UnitedStatesHistoryExam()
+main(apush)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))

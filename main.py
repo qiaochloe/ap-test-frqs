@@ -1,14 +1,14 @@
 from pdf_scraper import scrape_pdfs
 from processor import main
 
-exam = "ap-european-history"
+# NOTE: AP US History has two links
+# https://apcentral.collegeboard.org/courses/ap-united-states-history/exam/the-exam-prior-to-2014-15?course=ap-art-history
 
-scrape_pdfs(exam)
+exam = "ap-united-states-history"
+# scrape_pdfs(exam)
 
 # Run this in the shell
 # for i in *; do qpdf --decrypt --replace-input "$i"; done
 # TODO: write script to verify that pdf and pdf-text have the same number of documents
 
 # use Adobe Acrobat to get text
-
-main(exam, "^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$")
