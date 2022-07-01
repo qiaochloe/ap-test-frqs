@@ -71,7 +71,7 @@ class Exam:
 
 class WorldHistoryExam(Exam):
     name = "ap-world-history"
-    doc_regex = r"^(Document\s*)(\d)(.*?)(?=(Document|END))"
+    doc_regex = r"^(Document\s*)(\d*)(.*?)(?=(Document|END))"
     source_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
     question_regex = (
         r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$"
@@ -514,11 +514,11 @@ def main(exam):
 
 # TESTS
 
-euro = EuropeanHistoryExam()
-main(euro)
+# euro = EuropeanHistoryExam()
+# main(euro)
 
-# apwh = WorldHistoryExam()
-# main(apwh)
+apwh = WorldHistoryExam()
+main(apwh)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
