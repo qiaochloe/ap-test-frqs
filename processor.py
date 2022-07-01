@@ -93,7 +93,11 @@ class WorldHistoryExam(Exam):
 
         for match in re.finditer(cls.doc_regex, file_content, flags=re.M | re.S):
             doc_number = match.group(2)
-            doc_content = match.group(3)
+            doc_content = (
+                match.group(3)
+                if any(char.isalpha() for char in match.group(3))
+                else "Missing Document."
+            )
             question_type = "DBQ"
             question_number = "1"
             docs.append(
@@ -514,11 +518,11 @@ def main(exam):
 
 # TESTS
 
-# euro = EuropeanHistoryExam()
-# main(euro)
+euro = EuropeanHistoryExam()
+main(euro)
 
-apwh = WorldHistoryExam()
-main(apwh)
+# apwh = WorldHistoryExam()
+# main(apwh)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
