@@ -354,6 +354,39 @@ class WorldHistoryExam(Exam):
 class EuropeanHistoryExam(WorldHistoryExam):
     name = "ap-european-history"
 
+    @classmethod
+    def get_sources(cls, file_name, year, file_content):
+        """
+        Args:
+            file_name (str): name of the text file
+            year (str): year of the exam
+            file_content (str): content of the file
+
+        Returns:
+            list: list of all sources (in string form)
+        """
+
+        sources = []
+
+        for match in re.finditer(cls.source_regex, file_content, flags=re.M | re.S):
+            source_content = match.group(3)
+            source_number = "0"
+            # source_type =  match.group(2)
+            question_type = "SAQ" if int(year) >= 2017 else "LEQ"
+            question_number = match.group(5)
+            sources.append(
+                [
+                    source_content,
+                    source_number,
+                    question_type,
+                    question_number,
+                    year,
+                    file_name,
+                ]
+            )
+
+        return sources
+
     @staticmethod
     def get_question_type(year):
 
