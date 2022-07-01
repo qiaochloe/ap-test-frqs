@@ -455,6 +455,42 @@ class EuropeanHistoryExam(WorldHistoryExam):
 class UnitedStatesHistoryExam(WorldHistoryExam):
     name = "ap-united-states-history"
 
+    @staticmethod
+    def get_question_type(year):
+        """
+        Args:
+            year (str): year of the exam
+
+        Returns:
+            question_type (list): type of each FRQ (SAQ, DBQ, LEQ)
+            question_number (list): question number of each FRQ as given in the text
+        """
+
+        if pd.isna(year):
+            return [np.nan], [np.nan]
+
+        if int(year) >= 2019:
+            saq_range = range(1, 5)  # 1, 2, 3, 4
+            dbq_range = range(1, 2)  # 1
+            leq_range = range(2, 5)  # 2, 3, 4
+        elif int(year) >= 2015:
+            saq_range = range(1, 5)
+            dbq_range = range(1, 2)
+            leq_range = range(2, 4)  # 2, 3
+        else:
+            saq_range = range(0)
+            dbq_range = range(1, 2)
+            leq_range = range(2, 6)
+
+        questions = (
+            [["SAQ", str(i)] for i in saq_range]
+            + [["DBQ", str(i)] for i in dbq_range]
+            + [["LEQ", str(i)] for i in leq_range]
+        )
+        question_type = [question[0] for question in questions]
+        question_number = [question[1] for question in questions]
+        return question_type, question_number
+
 
 def get_files(dir_name):
     """Gets the names of all the files in a directory
