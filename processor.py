@@ -488,6 +488,35 @@ class UnitedStatesHistoryExam(WorldHistoryExam):
         question_number = [question[1] for question in questions]
         return question_type, question_number
 
+    @staticmethod
+    def patch_one(question_df):
+        # question_regex doesn't recognize semicolons (such as "Question 1:")
+        # This patches the data for the 1999 txt file
+        # ^(([0-9]\.)|Question \d)(.*?)((?=\n[1-9]\.)|(?=\nQuestion \d)|(?=\s\s\s)|(?=\nDocument [\w*]\s)|(?=\sEND))$
+
+        index = question_df[question_df["year"] == "1999"].index[0]
+        questions = [
+            "To what extent had the colonists developed a sense of their identity and unity as Americans by the eve of the Revolution? Use the documents and your knowledge of the period 1750 to 1776 to answer the question.",
+            """How did TWO of the following contribute to the reemergence of a two party system in the period 1820 to 1840?
+Major political personalities
+States' rights 
+Economic issues""",
+            "How were the lives of the Plains Indians in the second half of the nineteenth century affected by technological developments and government actions?",
+            "In what ways did economic conditions and developments in the arts and entertainment help create the reputation of the 1920s as the Roaring Twenties?",
+            "Assess the success of the United States policy of containment in Asia between 1945 and 1975.",
+        ]
+
+        question_df.loc[index : index + 4, "question"] = questions
+        return question_df
+
+    @classmethod
+    def postprocessor(cls, question_df, source_df):
+        question_df = cls.strip_df(question_df, "question")
+        source_df = cls.strip_df(source_df, "source_content")
+
+        question_df = cls.patch_one(question_df)
+        return question_df, source_df
+
 
 def get_files(dir_name):
     """Gets the names of all the files in a directory
