@@ -2,10 +2,8 @@
 # get link to scoring guidelines PDF
 # add "Source:" as a header for a document; remove before getting questions
 # add section for "Historical Background:"; also remove before getting questions
+# add section for Form B?
 # consider serving regex as tuples (for the flags)
-
-# TODO:
-# Check why source_content (match group 3) sometimes returns a number
 
 import re
 import pandas as pd
@@ -71,7 +69,7 @@ class Exam:
 
 class WorldHistoryExam(Exam):
     name = "ap-world-history"
-    doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END))"
+    doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END|Question \d))"
     # doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END|\D[1-3]\.\s))"
     source_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
     question_regex = (

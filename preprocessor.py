@@ -18,8 +18,10 @@ directions_phrase = [
     "Analyzes relevant reasons for similarities and differences",
     "Uses world historical context to show continuities and changes over time",
     "Analyzes the process of continuity and change over time",
-    "Suggested planning and writing",
-    "Suggested reading and writing",
+    "planning and writing",
+    "reading and writing",
+    "writing time",
+    "planning your answer",
     "THIS SPACE MAY BE USED FOR PLANNING YOUR ANSWER",
 ]
 # keep END OF EXAM for the regex (finding the last problem)
@@ -43,7 +45,14 @@ all_phrases = (
     + keywords
 )
 
-case_sensitive_phrases = ["STOP", "WORLD HISTORY"]
+case_sensitive_phrases = [
+    "STOP",
+]
+more_case_sensitive_phrases = [
+    "WORLD HISTORY",
+    "UNITED STATES HISTORY",
+    "EUROPEAN HISTORY",
+]
 strip_spaces_regex = ["^ (?=\d)"]
 headers_regex = ["SECTION [I]", "Part [ABC]"]
 other_regex = ["-[1-20]-"]  # Remove "^(Percent of)(.*?)(score.)(\s*)(.*?)(\s*?)$"
@@ -107,4 +116,7 @@ def preprocess_file_content(file_content):
         file_content, other_regex, regex_flags=re.I | re.M | re.S
     )
     file_content = remove_phrases(file_content, case_sensitive_regex, regex_flags=re.M)
+    file_content = remove_phrases(
+        file_content, more_case_sensitive_phrases, regex_flags=re.M
+    )
     return file_content
