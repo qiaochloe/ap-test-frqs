@@ -8,7 +8,8 @@ begin_response_phrase = [
 ]
 next_page_phrase = ["GO ON TO THE NEXT PAGE"]
 directions_phrase = [
-    "Directions:" "You are to answer the following question.",
+    "Directions:",
+    "You are to answer the following question.",
     "You should spend 5 minutes organizing or outlining your essay",
     "Write an essay that:",
     "Has a relevant thesis and supports that thesis with appropriate historical evidence",
@@ -17,7 +18,9 @@ directions_phrase = [
     "Analyzes relevant reasons for similarities and differences",
     "Uses world historical context to show continuities and changes over time",
     "Analyzes the process of continuity and change over time",
-    "Suggested planning and writing" "Suggested reading and writing",
+    "Suggested planning and writing",
+    "Suggested reading and writing",
+    "THIS SPACE MAY BE USED FOR PLANNING YOUR ANSWER",
 ]
 # keep END OF EXAM for the regex (finding the last problem)
 end_of_question_phrase = [
@@ -43,7 +46,7 @@ all_phrases = (
 case_sensitive_phrases = ["STOP", "WORLD HISTORY"]
 strip_spaces_regex = ["^ (?=\d)"]
 headers_regex = ["SECTION [I]", "Part [ABC]"]
-other_regex = ["-\d+-", "^(Percent of)(.*?)(score.)(\s*)(.*?)(\s*?)$"]
+other_regex = ["-[1-20]-"]  # Remove "^(Percent of)(.*?)(score.)(\s*)(.*?)(\s*?)$"
 
 
 def get_phrases_regex(phrases):
