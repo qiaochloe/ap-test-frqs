@@ -509,12 +509,33 @@ Economic issues""",
         question_df.loc[index : index + 4, "question"] = questions
         return question_df
 
+    def patch_two(question_df):
+        # ap16_frq_us_history.txt is missing some identifiers
+        # so patching it manually
+
+        index = question_df[
+            question_df["file_name"] == "ap16_frq_us_history.txt"
+        ].index[0]
+
+        # temp = question_df.loc[index, "question"]
+        for i in range(3):
+            question_df.loc[index + 6 - i, "question"] = question_df.loc[
+                index + 5 - i, "question"
+            ]
+
+        question_df.loc[
+            index + 3, "question"
+        ] = "Briefly explain ONE major difference between Josephson’s and Brands’s historical interpretations of businessleaders who rose to prominence between 1865 and 1900. Briefly explain how ONE person, event, or development from the period 1865–1900 that is not explicitlymentioned in the excerpts could be used to support Josephson’s interpretation. Briefly explain how ONE person, event, or development from the period 1865–1900 that is not explicitlymentioned in the excerpts could be used to support Brands’s interpretation."
+
+        return question_df
+
     @classmethod
     def postprocessor(cls, question_df, source_df):
         question_df = cls.strip_df(question_df, "question")
         source_df = cls.strip_df(source_df, "source_content")
 
         question_df = cls.patch_one(question_df)
+        question_df = cls.patch_two(question_df)
         return question_df, source_df
 
 
