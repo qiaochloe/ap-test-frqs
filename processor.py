@@ -71,10 +71,10 @@ class Exam:
 
 class WorldHistoryExam(Exam):
     name = "ap-world-history"
-    doc_regex = r"^(Document\s*)(\d*)(.*?)(?=(Document|END))"
+    doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END))"
     source_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
     question_regex = (
-        r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [0-9]\s)|(?=\sEND))$"
+        r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument[\w*]\s)|(?=\sEND))$"
     )
 
     @classmethod
@@ -558,11 +558,11 @@ def main(exam):
 
 # TESTS
 
-# euro = EuropeanHistoryExam()
-# main(euro)
+euro = EuropeanHistoryExam()
+main(euro)
 
-# apwh = WorldHistoryExam()
-# main(apwh)
+apwh = WorldHistoryExam()
+main(apwh)
 
 apush = UnitedStatesHistoryExam()
 main(apush)
