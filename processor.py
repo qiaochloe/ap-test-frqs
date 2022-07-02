@@ -72,9 +72,10 @@ class Exam:
 class WorldHistoryExam(Exam):
     name = "ap-world-history"
     doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END))"
+    # doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END|\D[1-3]\.\s))"
     source_regex = r"^(Use the (.*?) to answer all parts of the question that follows\.\s*)(.*?)((?<!\d)(?=([1-9])\.))"
     question_regex = (
-        r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument[\w*]\s)|(?=\sEND))$"
+        r"^([0-9]\.)(.*?)((?=\n[1-9]\.)|(?=\s\s\s)|(?=\nDocument [\w*]\s)|(?=\sEND))$"
     )
 
     @classmethod
@@ -243,7 +244,6 @@ class WorldHistoryExam(Exam):
         """
 
         questions = []
-        count = 0
 
         for match in re.finditer(
             cls.question_regex, file_content, flags=re.I | re.M | re.S
@@ -264,7 +264,7 @@ class WorldHistoryExam(Exam):
             question = [
                 re.sub("\n", "", subquestion, flags=re.I | re.M | re.S).strip(" ")
                 for subquestion in question
-                if subquestion != ""
+                if subquestion != "" and subquestion != " "
             ]
 
             # convert list to string
@@ -272,7 +272,6 @@ class WorldHistoryExam(Exam):
 
             # add subquestions to dictionary
             questions.append(question)
-            count += 1
 
         return questions
 
