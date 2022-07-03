@@ -65,3 +65,18 @@ def get_common_words(series, n=100):
             cnt[word] += 1
 
     return cnt.most_common(n)
+
+
+def get_question_period(df):
+    YEAR_REGEX = r"([1,2]\d{3})(\D|\-|–|\s*?)(\d{0,4})"
+    CENTURY_REGEX = r"(\s[a-z]*|\s[a-z]*\s)century"
+    question_period = []
+
+    for text in df["question_nlp"].values:
+        year = re.findall(YEAR_REGEX, text, flags=re.M | re.S | re.I)
+        century = re.findall(CENTURY_REGEX, text, flags=re.M | re.S | re.I)
+        period = year + century
+
+        question_period.append(period if period else "Missing question period.")
+
+    df["df_period"] = question_period
