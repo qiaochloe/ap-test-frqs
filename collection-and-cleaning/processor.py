@@ -539,6 +539,59 @@ Economic issues""",
         return question_df, source_df
 
 
+class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
+    name = "ap-united-states-government-and-politics"
+
+    @staticmethod
+    def get_question_type(year):
+        """
+        Args:
+            year (str): year of the exam
+
+        Returns:
+            question_type (list): type of each FRQ (SAQ, DBQ, LEQ)
+            question_number (list): question number of each FRQ as given in the text
+        """
+
+        if pd.isna(year):
+            return [np.nan], [np.nan]
+
+        if int(year) >= 2019:
+            saq_range = range(1, 4)  # 1, 2, 3
+            leq_range = range(4, 5)  # 4
+        else:
+            saq_range = range(1, 5)
+            leq_range = range(0)
+
+        questions = [["SAQ", str(i)] for i in saq_range] + [
+            ["LEQ", str(i)] for i in leq_range
+        ]
+        question_type = [question[0] for question in questions]
+        question_number = [question[1] for question in questions]
+        return question_type, question_number
+
+    @staticmethod
+    def strip_df(df, key):
+        def strip_chars(text):
+            try:
+                text = text.strip().replace("  ", " ")
+                text = re.sub("\n", "", text)
+                text = re.sub("^[\dabc](\)|\.)", "", text, flags=re.I | re.M)
+                text = re.sub("\([abc]\) ", "", text)
+            finally:
+                return text
+
+        df[f"{key}"] = df[f"{key}"].apply(strip_chars)
+        return df
+
+    @classmethod
+    def postprocessor(cls, question_df, source_df):
+        question_df = cls.strip_df(question_df, "question")
+        source_df = cls.strip_df(source_df, "source_content")
+
+        return question_df, source_df
+
+
 def get_files(dir_name):
     """Gets the names of all the files in a directory
 
@@ -605,14 +658,17 @@ def main(exam):
 
 # TESTS
 
-euro = EuropeanHistoryExam()
-main(euro)
+# apwh = WorldHistoryExam()
+# main(apwh)
 
-apwh = WorldHistoryExam()
-main(apwh)
+# apush = UnitedStatesHistoryExam()
+# main(apush)
 
-apush = UnitedStatesHistoryExam()
-main(apush)
+# euro = EuropeanHistoryExam()
+# main(euro)
+
+apgov = UnitedStatesGovernmentAndPoliticsExam()
+main(apgov)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
