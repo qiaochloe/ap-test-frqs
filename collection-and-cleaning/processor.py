@@ -12,21 +12,16 @@ from datetime import date
 from preprocessor import preprocess_file_content
 from os import listdir
 
+from typing import Tuple
+
 
 class Exam:
+
     earliest_year = 1954
     latest_year = date.today().year if date.today().month > 6 else date.today().year - 1
 
     @classmethod
-    def get_year(cls, file_name, file_content):
-        """
-        Args:
-            file_name (str): name of the text file
-            file_content (str): content of the text file
-
-        Returns:
-            str: year of the exam; NaN if the year is not found
-        """
+    def get_year(cls, file_name: str, file_content: str) -> str:
         # search content of the file
         year_regex = "\d+"
         for match in re.finditer(year_regex, file_content):
@@ -48,18 +43,11 @@ class Exam:
         return np.NaN
 
     @staticmethod
-    def remove_phrases(file_content, regex_list, regex_flags=re.I | re.M):
-        """Removes phrases using regex
+    def remove_phrases(
+        file_content: str, regex_list: list, regex_flags=re.I | re.M
+    ) -> str:
 
-        Args:
-            file_content (str): text content
-            regex_list (list): list of regex to remove phrases by
-            regex_flags
-
-        Returns:
-            str: the text content with phrases removed
-        """
-
+        """Removes phrases from file using a list of regex"""
         if type(regex_list) is not list:
             regex_list = [regex_list]
         for regex in regex_list:
@@ -68,6 +56,7 @@ class Exam:
 
 
 class WorldHistoryExam(Exam):
+
     name = "ap-world-history"
     doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END|Question \d))"
     # doc_regex = r"^(Document\s*)(\w*)(.*?)(?=(Document|END|\D[1-3]\.\s))"
@@ -77,16 +66,9 @@ class WorldHistoryExam(Exam):
     )
 
     @classmethod
-    def get_documents(cls, file_name, year, file_content):
-        """
-        Args:
-            file_name (str): name of the text file
-            year (str): year of the exam
-            file_content (str): content of the file
-
-        Returns:
-            list: list of all documents (in string form)
-        """
+    def get_documents(
+        cls, file_name: str, year: str, file_content: str
+    ) -> list[list[str]]:
 
         docs = []
 
@@ -113,16 +95,7 @@ class WorldHistoryExam(Exam):
         return docs
 
     @classmethod
-    def get_sources(cls, file_name, year, file_content):
-        """
-        Args:
-            file_name (str): name of the text file
-            year (str): year of the exam
-            file_content (str): content of the file
-
-        Returns:
-            list: list of all sources (in string form)
-        """
+    def get_sources(cls, file_name: str, year: str, file_content: str) -> list:
 
         sources = []
 
@@ -146,16 +119,9 @@ class WorldHistoryExam(Exam):
         return sources
 
     @classmethod
-    def get_source_df(cls, file_name, year, file_content):
-        """
-        Args:
-            file_name (str): name of the text file
-            year (str): year of the exam
-            file_content (str): content of the file
-
-        Returns:
-            pd.Dataframe: df of the documents and the sources
-        """
+    def get_source_df(
+        cls, file_name: str, year: str, file_content: str
+    ) -> pd.DataFrame:
 
         columns = [
             "source_content",
@@ -176,14 +142,7 @@ class WorldHistoryExam(Exam):
         return df
 
     @classmethod
-    def remove_sources(cls, file_content):
-        """
-        Args:
-            file_content (str): content of the file
-
-        Returns:
-            str: file content without the documents or sources
-        """
+    def remove_sources(cls, file_content: str) -> str:
 
         file_content = cls.remove_phrases(
             file_content, [cls.doc_regex], regex_flags=re.M | re.S
@@ -195,15 +154,7 @@ class WorldHistoryExam(Exam):
         return file_content
 
     @staticmethod
-    def get_question_type(year):
-        """
-        Args:
-            year (str): year of the exam
-
-        Returns:
-            question_type (list): type of each FRQ (SAQ, DBQ, LEQ)
-            question_number (list): question number of each FRQ as given in the text
-        """
+    def get_question_type(year: str) -> tuple[list, list]:
 
         if pd.isna(year):
             return [np.nan], [np.nan]
@@ -231,15 +182,9 @@ class WorldHistoryExam(Exam):
         return question_type, question_number
 
     @classmethod
-    def get_questions(cls, file_content):
-        """Gets a list of questions
+    def get_questions(cls, file_content: str) -> list:
 
-        Args:
-            file_content (str): content of the text file
-
-        Returns:
-            list: list of exam questions in chronological order (as they appear in the text)
-        """
+        """Returns a list of exam questions in chronological order (as they appear in the text)"""
 
         questions = []
 
@@ -274,17 +219,9 @@ class WorldHistoryExam(Exam):
         return questions
 
     @staticmethod
-    def fill_in_nan(questions, question_type, question_number):
-        """
-        Args:
-            questions (list): question from the file
-            question_type (list): type of question
-            question_number (list): number of question
-
-        Returns:
-            list, list, list
-            Makes each list the same length by filling in NaN
-        """
+    def fill_in_nan(
+        questions: list, question_type: list, question_number: list
+    ) -> tuple[list, list, list]:
 
         series = [
             pd.Series(lst, dtype=str)
@@ -299,16 +236,9 @@ class WorldHistoryExam(Exam):
         return questions, question_type, question_number
 
     @classmethod
-    def get_question_df(cls, file_name, year, file_content):
-        """
-        Args:
-            file_name (str): name of the file
-            year (str): year of the exam
-            file_content (str): content of the text file
-
-        Returns:
-            pd.DataFrame: df of the FRQs for a given year
-        """
+    def get_question_df(
+        cls, file_name: str, year: str, file_content: str
+    ) -> pd.DataFrame:
 
         questions = cls.get_questions(file_content)
         question_type, question_number = cls.get_question_type(year)
@@ -333,8 +263,8 @@ class WorldHistoryExam(Exam):
         return df
 
     @staticmethod
-    def strip_df(df, key):
-        def strip_chars(text):
+    def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
+        def strip_chars(text: str) -> str:
             try:
                 text = text.strip().replace("  ", " ")
                 text = re.sub("\n", "", text)
@@ -346,7 +276,10 @@ class WorldHistoryExam(Exam):
         return df
 
     @classmethod
-    def postprocessor(cls, question_df, source_df):
+    def postprocessor(
+        cls, question_df: pd.DataFrame, source_df: pd.DataFrame
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+
         question_df = cls.strip_df(question_df, "question")
         source_df = cls.strip_df(source_df, "source_content")
         return question_df, source_df
@@ -356,17 +289,9 @@ class EuropeanHistoryExam(WorldHistoryExam):
     name = "ap-european-history"
 
     @classmethod
-    def get_sources(cls, file_name, year, file_content):
-        """
-        Args:
-            file_name (str): name of the text file
-            year (str): year of the exam
-            file_content (str): content of the file
-
-        Returns:
-            list: list of all sources (in string form)
-        """
-
+    def get_sources(
+        cls, file_name: str, year: str, file_content: str
+    ) -> list[list[str]]:
         sources = []
 
         for match in re.finditer(cls.source_regex, file_content, flags=re.M | re.S):
@@ -389,7 +314,7 @@ class EuropeanHistoryExam(WorldHistoryExam):
         return sources
 
     @staticmethod
-    def get_question_type(year):
+    def get_question_type(year: str) -> tuple[list[str], list[int]]:
 
         if pd.isna(year):
             return [np.nan], [np.nan]
@@ -417,7 +342,7 @@ class EuropeanHistoryExam(WorldHistoryExam):
         return question_type, question_number
 
     @staticmethod
-    def patch_one(question_df):
+    def patch_one(question_df: pd.DataFrame) -> pd.DataFrame:
         # question_regex doesn't recognize semicolons (such as "Question 1:")
         # This patches the data for the 1999 txt file
 
@@ -441,7 +366,8 @@ class EuropeanHistoryExam(WorldHistoryExam):
         return question_df
 
     @classmethod
-    def postprocessor(cls, question_df, source_df):
+    def postprocessor(cls, question_df: pd.DataFrame, source_df: pd.DataFrame):
+
         question_df = cls.strip_df(question_df, "question")
         source_df = cls.strip_df(source_df, "source_content")
 
@@ -453,15 +379,7 @@ class UnitedStatesHistoryExam(WorldHistoryExam):
     name = "ap-united-states-history"
 
     @staticmethod
-    def get_question_type(year):
-        """
-        Args:
-            year (str): year of the exam
-
-        Returns:
-            question_type (list): type of each FRQ (SAQ, DBQ, LEQ)
-            question_number (list): question number of each FRQ as given in the text
-        """
+    def get_question_type(year: str) -> tuple[list[str], list[int]]:
 
         if pd.isna(year):
             return [np.nan], [np.nan]
@@ -489,7 +407,7 @@ class UnitedStatesHistoryExam(WorldHistoryExam):
         return question_type, question_number
 
     @staticmethod
-    def patch_one(question_df):
+    def patch_one(question_df: pd.DataFrame) -> pd.DataFrame:
         # question_regex doesn't recognize semicolons (such as "Question 1:")
         # This patches the data for the 1999 txt file
         # ^(([0-9]\.)|Question \d)(.*?)((?=\n[1-9]\.)|(?=\nQuestion \d)|(?=\s\s\s)|(?=\nDocument [\w*]\s)|(?=\sEND))$
@@ -509,7 +427,7 @@ Economic issues""",
         question_df.loc[index : index + 4, "question"] = questions
         return question_df
 
-    def patch_two(question_df):
+    def patch_two(question_df: pd.DataFrame) -> pd.DataFrame:
         # ap16_frq_us_history.txt is missing some identifiers
         # so patching it manually
 
@@ -530,7 +448,10 @@ Economic issues""",
         return question_df
 
     @classmethod
-    def postprocessor(cls, question_df, source_df):
+    def postprocessor(
+        cls, question_df: pd.DataFrame, source_df: pd.DataFrame
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+
         question_df = cls.strip_df(question_df, "question")
         source_df = cls.strip_df(source_df, "source_content")
 
@@ -543,15 +464,7 @@ class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
     name = "ap-united-states-government-and-politics"
 
     @staticmethod
-    def get_question_type(year):
-        """
-        Args:
-            year (str): year of the exam
-
-        Returns:
-            question_type (list): type of each FRQ (SAQ, DBQ, LEQ)
-            question_number (list): question number of each FRQ as given in the text
-        """
+    def get_question_type(year: str) -> tuple[list[str, list[int]]]:
 
         if pd.isna(year):
             return [np.nan], [np.nan]
@@ -566,13 +479,17 @@ class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
         questions = [["SAQ", str(i)] for i in saq_range] + [
             ["LEQ", str(i)] for i in leq_range
         ]
+
+        # type of each FRQ (SAQ, DBQ, LEQ)
         question_type = [question[0] for question in questions]
+        # question number of each FRQ as given in the text
         question_number = [question[1] for question in questions]
+
         return question_type, question_number
 
     @staticmethod
-    def strip_df(df, key):
-        def strip_chars(text):
+    def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
+        def strip_chars(text: str) -> str:
             try:
                 text = text.strip().replace("  ", " ")
                 text = re.sub("\n", "", text)
@@ -585,28 +502,24 @@ class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
         return df
 
     @classmethod
-    def postprocessor(cls, question_df, source_df):
+    def postprocessor(
+        cls, question_df: pd.DataFrame, source_df: pd.DataFrame
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+
         question_df = cls.strip_df(question_df, "question")
         source_df = cls.strip_df(source_df, "source_content")
 
         return question_df, source_df
 
 
-def get_files(dir_name):
-    """Gets the names of all the files in a directory
-
-    Args:
-        dir_name (str): name of the directory
-
-    Returns:
-        files (list): list of all files in the directory
-    """
+def get_files(dir_name: str) -> list:
+    """Returns a list of the names of all the files in a directory"""
 
     files = [file for file in listdir(dir_name) if file.endswith(".txt")]
     return files
 
 
-def get_file_content(file_name):
+def get_file_content(file_name: str) -> str:
     """
     Args:
         file_name (str): name of the text file
@@ -620,25 +533,20 @@ def get_file_content(file_name):
     return file_content
 
 
-def create_csv(df, file_name):
-    """
-    Args:
-        df (pd.DataFrame): df
-        file_name: path to the csv file to be edited
-    """
+def create_csv(df: pd.DataFrame, file_name: str) -> None:
 
     with open(f"{file_name}", "w+") as file:
         df.to_csv(file, index=False)
 
 
-def main(exam):
-    files = get_files(f"{exam.name}/pdf-text")
+def main(exam: Exam) -> None:
+    files = get_files(f"{exam.name}/question-text")
 
     source_dfs_list = []
     question_dfs_list = []
 
     for file in files:
-        file_content = get_file_content(f"{exam.name}/pdf-text/{file}")
+        file_content = get_file_content(f"{exam.name}/question-text/{file}")
         year = exam.get_year(file, file_content)
 
         file_content = preprocess_file_content(file_content)
@@ -671,9 +579,9 @@ apgov = UnitedStatesGovernmentAndPoliticsExam()
 main(apgov)
 
 # with open("test.txt", "w+") as file:
-#    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap-world-history-frq-2017.txt")))
+#    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/question-text/ap-world-history-frq-2017.txt")))
 #    file.write(content)
 
-# a = preprocess_file_content(get_file_content("ap-world-history/pdf-text/ap16_frq_world_history.txt"))
+# a = preprocess_file_content(get_file_content("ap-world-history/question-text/ap16_frq_world_history.txt"))
 # with open("test.txt", "w+") as file:
 #    file.write(a)
