@@ -4,8 +4,12 @@ import requests
 from bs4 import BeautifulSoup as bs
 import os
 
+from processor import *
 
-def get_frqs_url(exam):
+
+def get_frqs_url(exam: str) -> str:
+    """Returns the past exam questions page from CollegeBoard site for a given AP exam"""
+
     match exam:
         case "ap-united-states-government-and-politics":
             frqs_url = "https://apcentral.collegeboard.org/courses/ap-united-states-government-and-politics/exam/ap-us-government-and-politics-past-exam-questions"
@@ -15,7 +19,7 @@ def get_frqs_url(exam):
     return frqs_url
 
 
-def get_frqs_soup(frqs_url):
+def get_frqs_soup(frqs_url: str):  # unsure what return type soup is
 
     frqs_html = requests.get(frqs_url).text
     frqs_soup = bs(frqs_html, "lxml")
@@ -23,15 +27,8 @@ def get_frqs_soup(frqs_url):
     return frqs_soup
 
 
-def get_question_links(frqs_soup):
-    """Scrapes CollegeBoard site and returns links to FRQ PDFs
-
-    Args:
-        exam (str): name of exam
-
-    Returns:
-        list: list of links to question PDFs
-    """
+def get_question_links(frqs_soup) -> list:  # still unsure what return type soup is
+    """Scrapes CollegeBoard site and returns links to FRQ questions"""
 
     # Get links to question PDFs
     question_links = []
@@ -48,7 +45,9 @@ def get_question_links(frqs_soup):
     return question_links
 
 
-def get_scoring_links(frqs_soup):
+def get_scoring_links(frqs_soup) -> list:
+    """Scrapes CollegeBoard site and returns links to FRQ scoring guidelines"""
+
     scoring_links = []
 
     for table in frqs_soup.findAll("table"):
@@ -63,17 +62,8 @@ def get_scoring_links(frqs_soup):
     return scoring_links
 
 
-def download_pdfs(exam, folder, links):
-    """Downloads PDFs under {exam}/pdf/{pdf_name}
-
-    Args:
-        exam (str): name of the exam
-        folder (str): name of the subfolder inside the exam folder
-        links (list): links to PDFs
-
-    Returns:
-        none
-    """
+def download_pdfs(exam: str, folder: str, links: list) -> None:
+    """Downloads PDFs under {exam}/pdf/{pdf_name}"""
 
     for link in links:
 
@@ -89,7 +79,7 @@ def download_pdfs(exam, folder, links):
             pdf.write(content)
 
 
-def scrape_pdfs(exam, frqs_url):
+def scrape_pdfs(exam: str, frqs_url: str) -> None:
     soup = get_frqs_soup(frqs_url)
 
     # question_links = get_question_links(soup)
@@ -99,7 +89,7 @@ def scrape_pdfs(exam, frqs_url):
     download_pdfs(exam, "scoring-guideline", scoring_links)
 
 
-def main(exam):
+def main(exam: Exam):
     frqs_url = get_frqs_url(exam)
     scrape_pdfs(exam, frqs_url)
 
@@ -110,4 +100,5 @@ def main(exam):
         )
 
 
-main("ap-world-history")
+if __name__ == "__main__":
+    main()

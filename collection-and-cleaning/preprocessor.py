@@ -58,7 +58,7 @@ headers_regex = ["SECTION [I]", "Part [ABC]"]
 other_regex = ["-[1-20]-"]  # Remove "^(Percent of)(.*?)(score.)(\s*)(.*?)(\s*?)$"
 
 
-def get_phrases_regex(phrases):
+def get_phrases_regex(phrases: list) -> list:
     """Returns regex pattern that recognizes phrase patterns regardless of whitespace characters in between
 
     Args:
@@ -81,17 +81,9 @@ all_phrases_regex = get_phrases_regex(all_phrases)
 case_sensitive_regex = get_phrases_regex(case_sensitive_phrases)
 
 
-def remove_phrases(file_content, regex_list, regex_flags=re.I | re.M):
-    """Removes phrases using regex
+def remove_phrases(file_content: str, regex_list: list, regex_flags=re.I | re.M) -> str:
 
-    Args:
-        file_content (str): text content
-        regex_list (list): list of regex to remove phrases by
-        regex_flags
-
-    Returns:
-        str: the text content with phrases removed
-    """
+    """Removes phrases from file using a list of regex"""
 
     if type(regex_list) is not list:
         regex_list = [regex_list]
@@ -100,14 +92,7 @@ def remove_phrases(file_content, regex_list, regex_flags=re.I | re.M):
     return file_content
 
 
-def preprocess_file_content(file_content):
-    """
-    Args:
-        file_content (str): content to be cleaned
-
-    Returns:
-        str: cleaned file content
-    """
+def preprocess_file_content(file_content: str) -> str:
 
     file_content = remove_phrases(file_content, strip_spaces_regex)
     file_content = remove_phrases(file_content, all_phrases_regex)

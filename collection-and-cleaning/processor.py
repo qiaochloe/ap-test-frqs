@@ -1,5 +1,4 @@
 # TODO:
-# get link to scoring guidelines PDF
 # add "Source:" as a header for a document; remove before getting questions
 # add section for "Historical Background:"; also remove before getting questions
 # add section for Form B?
@@ -183,7 +182,6 @@ class WorldHistoryExam(Exam):
 
     @classmethod
     def get_questions(cls, file_content: str) -> list:
-
         """Returns a list of exam questions in chronological order (as they appear in the text)"""
 
         questions = []
@@ -566,17 +564,18 @@ def main(exam: Exam) -> None:
 
 # TESTS
 
-# apwh = WorldHistoryExam()
-# main(apwh)
+if __name__ == "__main__":
+    # apwh = WorldHistoryExam()
+    # main(apwh)
 
-# apush = UnitedStatesHistoryExam()
-# main(apush)
+    # apush = UnitedStatesHistoryExam()
+    # main(apush)
 
-# euro = EuropeanHistoryExam()
-# main(euro)
+    # euro = EuropeanHistoryExam()
+    # main(euro)
 
-apgov = UnitedStatesGovernmentAndPoliticsExam()
-main(apgov)
+    apgov = UnitedStatesGovernmentAndPoliticsExam()
+    main(apgov)
 
 # with open("test.txt", "w+") as file:
 #    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/question-text/ap-world-history-frq-2017.txt")))
