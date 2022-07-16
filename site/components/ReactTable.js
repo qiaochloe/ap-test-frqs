@@ -5,6 +5,7 @@ import {
   useAsyncDebounce,
   useFilters,
 } from "react-table";
+import { Table } from "@mantine/core";
 
 // the useAsyncDeBounch creates a ReferenceError: regeneratorRuntime is not defined if this is not here
 // see https://github.com/TanStack/table/issues/2071
@@ -77,7 +78,7 @@ export function SelectColumnFilter({
   );
 }
 
-export default function Table({ columns, data }) {
+export default function ReactTable({ columns, data }) {
   // Use the state and functions returned from useTable to build the UI
   const {
     getTableProps,
@@ -126,7 +127,12 @@ export default function Table({ columns, data }) {
           ) : null
         )
       )}
-      <table {...getTableProps()} border="1">
+      <Table
+        {...getTableProps()}
+        horizontalSpacing="xl"
+        verticalSpacing="xs"
+        fontSize="xs"
+      >
         <thead>
           {headerGroups.map((headerGroup) => (
             <tr {...headerGroup.getHeaderGroupProps()}>
@@ -150,7 +156,7 @@ export default function Table({ columns, data }) {
             );
           })}
         </tbody>
-      </table>
+      </Table>
       <div>
         <pre>
           <code>{JSON.stringify(state, null, 2)}</code>

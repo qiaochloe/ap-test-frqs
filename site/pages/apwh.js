@@ -1,4 +1,4 @@
-import Table, { SelectColumnFilter } from "../components/Table";
+import ReactTable, { SelectColumnFilter } from "../components/ReactTable";
 import { useMemo } from "react";
 
 const getData = () => [
@@ -643,7 +643,7 @@ export default function Demo() {
     <>
       <h1>Hello React!</h1>
       <div>
-        <Table columns={columns} data={data} />
+        <ReactTable columns={columns} data={data} />
       </div>
     </>
   );
