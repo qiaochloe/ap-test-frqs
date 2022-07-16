@@ -1,4 +1,4 @@
-import Table from "../components/Table";
+import Table, { SelectColumnFilter } from "../components/Table";
 import { useMemo } from "react";
 
 const getData = () => [
@@ -622,6 +622,8 @@ export default function Demo() {
       {
         Header: "Type",
         accessor: "question_type",
+        Filter: SelectColumnFilter,
+        filter: "includes",
       },
       {
         Header: "Number",

@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { useTable, useGlobalFilter, useAsyncDebounce } from "react-table";
+import { useState, useMemo } from "react";
+import {
+  useTable,
+  useGlobalFilter,
+  useAsyncDebounce,
+  useFilters,
+} from "react-table";
 
 // the useAsyncDeBounch creates a ReferenceError: regeneratorRuntime is not defined if this is not here
 // see https://github.com/TanStack/table/issues/2071
@@ -37,6 +42,41 @@ function GlobalFilter({
   );
 }
 
+// This is a custom filter UI for selecting
+// a unique option from a list
+export function SelectColumnFilter({
+  column: { filterValue, setFilter, preFilteredRows = [], id },
+}) {
+  // Calculate the options for filtering
+  // using the preFilteredRows
+  const options = useMemo(() => {
+    const options = new Set();
+    preFilteredRows.forEach((row) => {
+      options.add(row.values[id]);
+    });
+    return [...options.values()];
+  }, [id, preFilteredRows]);
+
+  // Render a multi-select box
+  return (
+    <select
+      name={id}
+      id={id}
+      value={filterValue}
+      onChange={(e) => {
+        setFilter(e.target.value || undefined);
+      }}
+    >
+      <option value="">All</option>
+      {options.map((option, i) => (
+        <option key={i} value={option}>
+          {option}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 export default function Table({ columns, data }) {
   // Use the state and functions returned from useTable to build the UI
   const {
@@ -53,6 +93,7 @@ export default function Table({ columns, data }) {
       columns,
       data,
     },
+    useFilters, // useFilter is applied first
     useGlobalFilter
   );
 
@@ -75,6 +116,16 @@ export default function Table({ columns, data }) {
         globalFilter={state.globalFilter}
         setGlobalFilter={setGlobalFilter}
       />
+      {headerGroups.map((headerGroup) =>
+        headerGroup.headers.map((column) =>
+          column.Filter ? (
+            <div key={column.id}>
+              <label htmlFor={column.id}>{column.render("Header")}: </label>
+              {column.render("Filter")}
+            </div>
+          ) : null
+        )
+      )}
       <table {...getTableProps()} border="1">
         <thead>
           {headerGroups.map((headerGroup) => (
@@ -100,6 +151,11 @@ export default function Table({ columns, data }) {
           })}
         </tbody>
       </table>
+      <div>
+        <pre>
+          <code>{JSON.stringify(state, null, 2)}</code>
+        </pre>
+      </div>
     </>
   );
 }
