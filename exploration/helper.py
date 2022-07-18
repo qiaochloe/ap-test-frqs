@@ -3,6 +3,7 @@ import re
 import string
 from nltk.corpus import stopwords
 from collections import Counter
+from typing import Tuple
 
 
 def remove_punct(text):
@@ -68,15 +69,35 @@ def get_common_words(series, n=100):
 
 
 def get_question_period(df):
-    YEAR_REGEX = r"([1,2]\d{3})(\D|\-|–|\s*?)(\d{0,4})"
+    YEAR_REGEX = r"(\d{4})(?:\-|–)?(\d{2,4})?"
     CENTURY_REGEX = r"(\s[a-z]*|\s[a-z]*\s)century"
+    CENTURY_PLURAL_REGEX = r" (\w*?) and (\w*?) centuries"
+
     question_period = []
 
-    for text in df["question_nlp"].values:
+    for text in df["question"].values:
         year = re.findall(YEAR_REGEX, text, flags=re.M | re.S | re.I)
         century = re.findall(CENTURY_REGEX, text, flags=re.M | re.S | re.I)
-        period = year + century
+        century_plural = re.findall(
+            CENTURY_PLURAL_REGEX, text, flags=re.M | re.S | re.I
+        )
+        # convert list of tuples to flat list
+
+        period = [
+            *flatten_tuple_list(year),
+            *century,
+            *flatten_tuple_list(century_plural),
+        ]
+
+        # set only stores unique values
+        # period = list(set(period))
+        period = list(filter(None, set(period)))
+        period = [item.strip() for item in period]
 
         question_period.append(period if period else "Missing question period.")
 
     df["df_period"] = question_period
+
+
+def flatten_tuple_list(tup_list: list[Tuple[str]]) -> list:
+    return list(sum(tup_list, ()))
