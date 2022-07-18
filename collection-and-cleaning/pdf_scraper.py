@@ -4,8 +4,6 @@ import requests
 from bs4 import BeautifulSoup as bs
 import os
 
-from processor import *
-
 
 def get_frqs_url(exam: str) -> str:
     """Returns the past exam questions page from CollegeBoard site for a given AP exam"""
@@ -89,15 +87,9 @@ def scrape_pdfs(exam: str, frqs_url: str) -> None:
     download_pdfs(exam, "scoring-guideline", scoring_links)
 
 
-def main(exam: Exam):
-    frqs_url = get_frqs_url(exam)
-    scrape_pdfs(exam, frqs_url)
-
-    if exam == "ap-united-states-history":
-        scrape_pdfs(
-            exam,
-            "https://apcentral.collegeboard.org/courses/ap-united-states-history/exam/the-exam-prior-to-2014-15?course=ap-art-history",
-        )
+def main():
+    exam = "ap-european-history"
+    get_question_links(get_frqs_soup(get_frqs_url(exam)))
 
 
 if __name__ == "__main__":

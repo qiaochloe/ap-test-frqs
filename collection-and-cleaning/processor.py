@@ -9,6 +9,12 @@ import pandas as pd
 import numpy as np
 from datetime import date
 from preprocessor import preprocess_file_content
+from pdf_scraper import (
+    get_frqs_url,
+    get_frqs_soup,
+    get_question_links,
+    get_scoring_links,
+)
 from os import listdir
 
 from typing import Tuple
@@ -66,7 +72,7 @@ class WorldHistoryExam(Exam):
 
     @classmethod
     def get_documents(
-        cls, file_name: str, year: str, file_content: str
+        cls, question_url: str, year: str, file_content: str
     ) -> list[list[str]]:
 
         docs = []
@@ -87,14 +93,14 @@ class WorldHistoryExam(Exam):
                     question_type,
                     question_number,
                     year,
-                    file_name,
+                    question_url,
                 ]
             )
 
         return docs
 
     @classmethod
-    def get_sources(cls, file_name: str, year: str, file_content: str) -> list:
+    def get_sources(cls, question_url: str, year: str, file_content: str) -> list:
 
         sources = []
 
@@ -111,7 +117,7 @@ class WorldHistoryExam(Exam):
                     question_type,
                     question_number,
                     year,
-                    file_name,
+                    question_url,
                 ]
             )
 
@@ -119,7 +125,7 @@ class WorldHistoryExam(Exam):
 
     @classmethod
     def get_source_df(
-        cls, file_name: str, year: str, file_content: str
+        cls, question_url: str, year: str, file_content: str
     ) -> pd.DataFrame:
 
         columns = [
@@ -128,13 +134,13 @@ class WorldHistoryExam(Exam):
             "question_type",
             "question_number",
             "year",
-            "file_name",
+            "question_url",
         ]
 
         df = pd.DataFrame(
             [
-                *cls.get_documents(file_name, year, file_content),
-                *cls.get_sources(file_name, year, file_content),
+                *cls.get_documents(question_url, year, file_content),
+                *cls.get_sources(question_url, year, file_content),
             ],
             columns=columns,
         )
@@ -235,7 +241,7 @@ class WorldHistoryExam(Exam):
 
     @classmethod
     def get_question_df(
-        cls, file_name: str, year: str, file_content: str
+        cls, question_url: str, year: str, file_content: str
     ) -> pd.DataFrame:
 
         questions = cls.get_questions(file_content)
@@ -244,7 +250,13 @@ class WorldHistoryExam(Exam):
             questions, question_type, question_number
         )
 
-        columns = ["question", "question_type", "question_number", "year", "file_name"]
+        columns = [
+            "question",
+            "question_type",
+            "question_number",
+            "year",
+            "question_url",
+        ]
         df = pd.DataFrame(columns=columns)
 
         count = 0
@@ -254,7 +266,7 @@ class WorldHistoryExam(Exam):
                 question_type[count],
                 question_number[count],
                 year,
-                file_name,
+                question_url,
             ]
             count += 1
 
@@ -274,7 +286,7 @@ class WorldHistoryExam(Exam):
         return df
 
     @classmethod
-    def postprocessor(
+    def post_cleaning(
         cls, question_df: pd.DataFrame, source_df: pd.DataFrame
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
 
@@ -288,7 +300,7 @@ class EuropeanHistoryExam(WorldHistoryExam):
 
     @classmethod
     def get_sources(
-        cls, file_name: str, year: str, file_content: str
+        cls, question_url: str, year: str, file_content: str
     ) -> list[list[str]]:
         sources = []
 
@@ -305,7 +317,7 @@ class EuropeanHistoryExam(WorldHistoryExam):
                     question_type,
                     question_number,
                     year,
-                    file_name,
+                    question_url,
                 ]
             )
 
@@ -339,39 +351,6 @@ class EuropeanHistoryExam(WorldHistoryExam):
         question_number = [question[1] for question in questions]
         return question_type, question_number
 
-    @staticmethod
-    def patch_one(question_df: pd.DataFrame) -> pd.DataFrame:
-        # question_regex doesn't recognize semicolons (such as "Question 1:")
-        # This patches the data for the 1999 txt file
-
-        index = question_df[question_df["year"] == "1999"].index[0]
-        questions = [
-            "For the period 1861 to 1914, analyze how various Russians perceived the condition of the Russian peasantry and explain how they proposed to change that condition.",
-            "Contrast how a Marxist and a Social Darwinist would account for the differences in the conditions of these two mid-nineteenth-century families.",
-            "Analyze the ways in which the contrasting styles of these two paintings reflect the different economic values and social structures of France and the Netherlands in the seventeenth century.",
-            "Contrast the historical context, beliefs, and behavior of quepean youth represented by these two photographs.",
-            """Machiavelli suggested that a ruler should behave both "like a lion" and "like a fox." Analyze the policies of TWO of the following quepean rulers, indicating the degree to which they successfully followed Machiavellis suggestion.
-        Choose two: Elizabeth I of England
-        Henry IV of France
-        Catherine the Great of Russia
-        Frederick II of Prussia""",
-            """Discuss the relationship between politics and religion by examining the wars of religion. Choose TWO specific examples from the following:
-        Dutch Revolt  French Wars of Religion  English Civil War Thirty Years' War""",
-            "Compare and contrast the degree of success of treaties negotiated in Vienna (1814-1815) and Versailles (1919) in achieving quepean stability.",
-        ]
-
-        question_df.loc[index : index + 6, "question"] = questions
-        return question_df
-
-    @classmethod
-    def postprocessor(cls, question_df: pd.DataFrame, source_df: pd.DataFrame):
-
-        question_df = cls.strip_df(question_df, "question")
-        source_df = cls.strip_df(source_df, "source_content")
-
-        question_df = cls.patch_one(question_df)
-        return question_df, source_df
-
 
 class UnitedStatesHistoryExam(WorldHistoryExam):
     name = "ap-united-states-history"
@@ -403,59 +382,6 @@ class UnitedStatesHistoryExam(WorldHistoryExam):
         question_type = [question[0] for question in questions]
         question_number = [question[1] for question in questions]
         return question_type, question_number
-
-    @staticmethod
-    def patch_one(question_df: pd.DataFrame) -> pd.DataFrame:
-        # question_regex doesn't recognize semicolons (such as "Question 1:")
-        # This patches the data for the 1999 txt file
-        # ^(([0-9]\.)|Question \d)(.*?)((?=\n[1-9]\.)|(?=\nQuestion \d)|(?=\s\s\s)|(?=\nDocument [\w*]\s)|(?=\sEND))$
-
-        index = question_df[question_df["year"] == "1999"].index[0]
-        questions = [
-            "To what extent had the colonists developed a sense of their identity and unity as Americans by the eve of the Revolution? Use the documents and your knowledge of the period 1750 to 1776 to answer the question.",
-            """How did TWO of the following contribute to the reemergence of a two party system in the period 1820 to 1840?
-Major political personalities
-States' rights 
-Economic issues""",
-            "How were the lives of the Plains Indians in the second half of the nineteenth century affected by technological developments and government actions?",
-            "In what ways did economic conditions and developments in the arts and entertainment help create the reputation of the 1920s as the Roaring Twenties?",
-            "Assess the success of the United States policy of containment in Asia between 1945 and 1975.",
-        ]
-
-        question_df.loc[index : index + 4, "question"] = questions
-        return question_df
-
-    def patch_two(question_df: pd.DataFrame) -> pd.DataFrame:
-        # ap16_frq_us_history.txt is missing some identifiers
-        # so patching it manually
-
-        index = question_df[
-            question_df["file_name"] == "ap16_frq_us_history.txt"
-        ].index[0]
-
-        # temp = question_df.loc[index, "question"]
-        for i in range(3):
-            question_df.loc[index + 6 - i, "question"] = question_df.loc[
-                index + 5 - i, "question"
-            ]
-
-        question_df.loc[
-            index + 3, "question"
-        ] = "Briefly explain ONE major difference between Josephson’s and Brands’s historical interpretations of businessleaders who rose to prominence between 1865 and 1900. Briefly explain how ONE person, event, or development from the period 1865–1900 that is not explicitlymentioned in the excerpts could be used to support Josephson’s interpretation. Briefly explain how ONE person, event, or development from the period 1865–1900 that is not explicitlymentioned in the excerpts could be used to support Brands’s interpretation."
-
-        return question_df
-
-    @classmethod
-    def postprocessor(
-        cls, question_df: pd.DataFrame, source_df: pd.DataFrame
-    ) -> tuple[pd.DataFrame, pd.DataFrame]:
-
-        question_df = cls.strip_df(question_df, "question")
-        source_df = cls.strip_df(source_df, "source_content")
-
-        question_df = cls.patch_one(question_df)
-        question_df = cls.patch_two(question_df)
-        return question_df, source_df
 
 
 class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
@@ -499,16 +425,6 @@ class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
         df[f"{key}"] = df[f"{key}"].apply(strip_chars)
         return df
 
-    @classmethod
-    def postprocessor(
-        cls, question_df: pd.DataFrame, source_df: pd.DataFrame
-    ) -> tuple[pd.DataFrame, pd.DataFrame]:
-
-        question_df = cls.strip_df(question_df, "question")
-        source_df = cls.strip_df(source_df, "source_content")
-
-        return question_df, source_df
-
 
 def get_files(dir_name: str) -> list:
     """Returns a list of the names of all the files in a directory"""
@@ -537,26 +453,36 @@ def create_csv(df: pd.DataFrame, file_name: str) -> None:
         df.to_csv(file, index=False)
 
 
+def get_pdf_name_from_link(link: str) -> str:
+    link = link.split("/")[-1]
+    link = link.split(".pdf")[0] + ".txt"
+    return link
+
+
 def main(exam: Exam) -> None:
-    files = get_files(f"{exam.name}/question-text")
+
+    question_links = get_question_links(get_frqs_soup(get_frqs_url(exam.name)))
+    # files = get_files(f"{exam.name}/question-text") then [for file in files]
 
     source_dfs_list = []
     question_dfs_list = []
 
-    for file in files:
+    for url in question_links:
+
+        file = get_pdf_name_from_link(url)
         file_content = get_file_content(f"{exam.name}/question-text/{file}")
         year = exam.get_year(file, file_content)
 
         file_content = preprocess_file_content(file_content)
-        source_dfs_list.append(exam.get_source_df(file, year, file_content))
+        source_dfs_list.append(exam.get_source_df(url, year, file_content))
 
         file_content = exam.remove_sources(file_content)
-        question_dfs_list.append(exam.get_question_df(file, year, file_content))
+        question_dfs_list.append(exam.get_question_df(url, year, file_content))
 
     source_dfs = pd.concat(source_dfs_list, ignore_index=True, sort=False)
     question_dfs = pd.concat(question_dfs_list, ignore_index=True, sort=False)
 
-    question_dfs, source_dfs = exam.postprocessor(question_dfs, source_dfs)
+    question_dfs, source_dfs = exam.post_cleaning(question_dfs, source_dfs)
 
     create_csv(source_dfs, f"{exam.name}/source.csv")
     create_csv(question_dfs, f"{exam.name}/question.csv")
@@ -565,14 +491,14 @@ def main(exam: Exam) -> None:
 # TESTS
 
 if __name__ == "__main__":
-    # apwh = WorldHistoryExam()
-    # main(apwh)
+    apwh = WorldHistoryExam()
+    main(apwh)
 
-    # apush = UnitedStatesHistoryExam()
-    # main(apush)
+    apush = UnitedStatesHistoryExam()
+    main(apush)
 
-    # euro = EuropeanHistoryExam()
-    # main(euro)
+    euro = EuropeanHistoryExam()
+    main(euro)
 
     apgov = UnitedStatesGovernmentAndPoliticsExam()
     main(apgov)
