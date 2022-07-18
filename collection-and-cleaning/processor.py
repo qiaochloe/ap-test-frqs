@@ -272,28 +272,6 @@ class WorldHistoryExam(Exam):
 
         return df
 
-    @staticmethod
-    def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
-        def strip_chars(text: str) -> str:
-            try:
-                text = text.strip().replace("  ", " ")
-                text = re.sub("\n", "", text)
-                text = re.sub("^[\dabc](\)|\.)", "", text, flags=re.I | re.M)
-            finally:
-                return text
-
-        df[f"{key}"] = df[f"{key}"].apply(strip_chars)
-        return df
-
-    @classmethod
-    def post_cleaning(
-        cls, question_df: pd.DataFrame, source_df: pd.DataFrame
-    ) -> tuple[pd.DataFrame, pd.DataFrame]:
-
-        question_df = cls.strip_df(question_df, "question")
-        source_df = cls.strip_df(source_df, "source_content")
-        return question_df, source_df
-
 
 class EuropeanHistoryExam(WorldHistoryExam):
     name = "ap-european-history"
@@ -481,8 +459,6 @@ def main(exam: Exam) -> None:
 
     source_dfs = pd.concat(source_dfs_list, ignore_index=True, sort=False)
     question_dfs = pd.concat(question_dfs_list, ignore_index=True, sort=False)
-
-    question_dfs, source_dfs = exam.post_cleaning(question_dfs, source_dfs)
 
     create_csv(source_dfs, f"{exam.name}/source.csv")
     create_csv(question_dfs, f"{exam.name}/question.csv")

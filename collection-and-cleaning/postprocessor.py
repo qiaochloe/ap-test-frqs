@@ -1,5 +1,28 @@
 import pandas as pd
 
+
+def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
+    def strip_chars(text: str) -> str:
+        try:
+            text = text.strip().replace("  ", " ")
+            text = re.sub("\n", "", text)
+            text = re.sub("^[\dabc](\)|\.)", "", text, flags=re.I | re.M)
+        finally:
+            return text
+
+    df[f"{key}"] = df[f"{key}"].apply(strip_chars)
+    return df
+
+
+def post_cleaning(
+    cls, question_df: pd.DataFrame, source_df: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+
+    question_df = cls.strip_df(question_df, "question")
+    source_df = cls.strip_df(source_df, "source_content")
+    return question_df, source_df
+
+
 # United States History
 def patch_two(question_df: pd.DataFrame) -> pd.DataFrame:
     # ap16_frq_us_history.txt is missing some identifiers
@@ -23,26 +46,14 @@ def patch_two(question_df: pd.DataFrame) -> pd.DataFrame:
     return question_df
 
 
-# European History
-def patch_one(question_df: pd.DataFrame) -> pd.DataFrame:
-    # question_regex doesn't recognize semicolons (such as "Question 1:")
-    # This patches the data for the 1999 txt file
-
-    index = question_df[question_df["year"] == "1999"].index[0]
-    questions = [
-        "For the period 1861 to 1914, analyze how various Russians perceived the condition of the Russian peasantry and explain how they proposed to change that condition.",
-        "Contrast how a Marxist and a Social Darwinist would account for the differences in the conditions of these two mid-nineteenth-century families.",
-        "Analyze the ways in which the contrasting styles of these two paintings reflect the different economic values and social structures of France and the Netherlands in the seventeenth century.",
-        "Contrast the historical context, beliefs, and behavior of quepean youth represented by these two photographs.",
-        """Machiavelli suggested that a ruler should behave both "like a lion" and "like a fox." Analyze the policies of TWO of the following quepean rulers, indicating the degree to which they successfully followed Machiavellis suggestion.
-    Choose two: Elizabeth I of England
-    Henry IV of France
-    Catherine the Great of Russia
-    Frederick II of Prussia""",
-        """Discuss the relationship between politics and religion by examining the wars of religion. Choose TWO specific examples from the following:
-    Dutch Revolt  French Wars of Religion  English Civil War Thirty Years' War""",
-        "Compare and contrast the degree of success of treaties negotiated in Vienna (1814-1815) and Versailles (1919) in achieving quepean stability.",
+def main():
+    exams = [
+        "ap-european-history",
+        "ap-united-states-government-and-politics",
+        "ap-united-states-history",
+        "ap-world-history",
     ]
 
-    question_df.loc[index : index + 6, "question"] = questions
-    return question_df
+    for exam in exams:
+        question = pd.read_csv(f"{exam}/question.csv")
+        source = pd.read_csv(f"{exam}/source.csv")
