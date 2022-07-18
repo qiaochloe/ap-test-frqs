@@ -70,23 +70,20 @@ def get_common_words(series, n=100):
 
 def get_question_period(df):
     YEAR_REGEX = r"(\d{4})(?:\-|–)?(\d{2,4})?"
-    CENTURY_REGEX = r"(\s[a-z]*|\s[a-z]*\s)century"
-    CENTURY_PLURAL_REGEX = r" (\w*?) and (\w*?) centuries"
+    CENTURY_REGEX = (
+        r"(?:([\w-]*)(?:(?: and)|(?: or))(?:\s|-))*(\w*)(?:\s|-)centur(?:ies|y)"
+    )
 
     question_period = []
 
     for text in df["question"].values:
         year = re.findall(YEAR_REGEX, text, flags=re.M | re.S | re.I)
         century = re.findall(CENTURY_REGEX, text, flags=re.M | re.S | re.I)
-        century_plural = re.findall(
-            CENTURY_PLURAL_REGEX, text, flags=re.M | re.S | re.I
-        )
         # convert list of tuples to flat list
 
         period = [
             *flatten_tuple_list(year),
-            *century,
-            *flatten_tuple_list(century_plural),
+            *flatten_tuple_list(century),
         ]
 
         # set only stores unique values
