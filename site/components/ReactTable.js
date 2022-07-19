@@ -5,7 +5,7 @@ import {
   useAsyncDebounce,
   useFilters,
 } from "react-table";
-import { Table } from "@mantine/core";
+import { Table, TextInput, Select, MultiSelect } from "@mantine/core";
 
 // the useAsyncDeBounch creates a ReferenceError: regeneratorRuntime is not defined if this is not here
 // see https://github.com/TanStack/table/issues/2071
@@ -29,17 +29,14 @@ function GlobalFilter({
   }, 200);
 
   return (
-    <span>
-      Search:{" "}
-      <input
-        value={value || ""}
-        onChange={(e) => {
-          setValue(e.target.value);
-          onChange(e.target.value);
-        }}
-        placeholder={`${count} records...`}
-      />
-    </span>
+    <TextInput
+      placeholder={`Rummage through ${count} records`}
+      label="Search"
+      onChange={(e) => {
+        setValue(e.target.value);
+        onChange(e.target.value);
+      }}
+    />
   );
 }
 
@@ -58,23 +55,16 @@ export function SelectColumnFilter({
     return [...options.values()];
   }, [id, preFilteredRows]);
 
-  // Render a multi-select box
   return (
-    <select
-      name={id}
-      id={id}
+    <Select
+      label="Type"
+      placeHolder="Filter through three question types"
       value={filterValue}
       onChange={(e) => {
-        setFilter(e.target.value || undefined);
+        setFilter(e || undefined);
       }}
-    >
-      <option value="">All</option>
-      {options.map((option, i) => (
-        <option key={i} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
+      data={options}
+    />
   );
 }
 
@@ -120,10 +110,7 @@ export default function ReactTable({ columns, data }) {
       {headerGroups.map((headerGroup) =>
         headerGroup.headers.map((column) =>
           column.Filter ? (
-            <div key={column.id}>
-              <label htmlFor={column.id}>{column.render("Header")}: </label>
-              {column.render("Filter")}
-            </div>
+            <div key={column.id}>{column.render("Filter")}</div>
           ) : null
         )
       )}
