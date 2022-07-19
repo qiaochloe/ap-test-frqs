@@ -1,4 +1,6 @@
-# TODO: Check that number of scoring guidelines and number of pdfs are the same
+# TODO:
+# Check that number of scoring guidelines and number of pdfs are the same
+# Scrape Set 2 (for AP GOV)
 
 import requests
 from bs4 import BeautifulSoup as bs
@@ -25,7 +27,7 @@ def get_frqs_soup(frqs_url: str):  # unsure what return type soup is
     return frqs_soup
 
 
-def get_question_links(frqs_soup) -> list:  # still unsure what return type soup is
+def get_question_links(frqs_soup, exam: str = None) -> list:
     """Scrapes CollegeBoard site and returns links to FRQ questions"""
 
     # Get links to question PDFs
@@ -39,6 +41,14 @@ def get_question_links(frqs_soup) -> list:  # still unsure what return type soup
             question_links.append(link)
         else:
             question_links.append("https://apcentral.collegeboard.org" + link)
+
+    if exam is not None:
+        if exam == "ap-united-states-history":
+            frq_soup = get_frqs_soup(
+                "https://apcentral.collegeboard.org/courses/ap-united-states-history/exam/the-exam-prior-to-2014-15?course=ap-art-history"
+            )
+            more_links = get_question_links(frq_soup)
+            question_links.extend(more_links)
 
     return question_links
 

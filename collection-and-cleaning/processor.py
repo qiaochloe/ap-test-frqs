@@ -4,6 +4,11 @@
 # add section for Form B?
 # consider serving regex as tuples (for the flags)
 
+# NOTE:
+# AP GOV has set 1 and 2 starting 2021
+# APUSH, APEH had Form B from 2002-2011
+# APWORLD doesn't have any special forms
+
 import re
 import pandas as pd
 import numpy as np
@@ -46,6 +51,10 @@ class Exam:
                     return "19" + value
 
         return np.NaN
+
+    @classmethod
+    def get_exam_edition(cls, year: str, file_content: str) -> str:
+        return ""
 
     @staticmethod
     def remove_phrases(
@@ -277,6 +286,14 @@ class EuropeanHistoryExam(WorldHistoryExam):
     name = "ap-european-history"
 
     @classmethod
+    def get_exam_edition(cls, year: str, file_content: str) -> str:
+        year = int(year)
+        if 2002 <= year <= 2011:
+            if "Form B" in file_content:
+                return "Form B"
+        return ""
+
+    @classmethod
     def get_sources(
         cls, question_url: str, year: str, file_content: str
     ) -> list[list[str]]:
@@ -333,6 +350,14 @@ class EuropeanHistoryExam(WorldHistoryExam):
 class UnitedStatesHistoryExam(WorldHistoryExam):
     name = "ap-united-states-history"
 
+    @classmethod
+    def get_exam_edition(cls, year: str, file_content: str) -> str:
+        year = int(year)
+        if 2002 <= year <= 2011:
+            if "Form B" in file_content:
+                return "Form B"
+        return ""
+
     @staticmethod
     def get_question_type(year: str) -> tuple[list[str], list[int]]:
 
@@ -364,6 +389,14 @@ class UnitedStatesHistoryExam(WorldHistoryExam):
 
 class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
     name = "ap-united-states-government-and-politics"
+
+    @classmethod
+    def get_exam_edition(cls, year: str, file_content: str) -> str:
+        year = int(year)
+        if year >= 2021:
+            if "Set 2" in file_content:
+                return "Set 2"
+        return "Set 1"
 
     @staticmethod
     def get_question_type(year: str) -> tuple[list[str, list[int]]]:
@@ -439,7 +472,9 @@ def get_pdf_name_from_link(link: str) -> str:
 
 def main(exam: Exam) -> None:
 
-    question_links = get_question_links(get_frqs_soup(get_frqs_url(exam.name)))
+    question_links = get_question_links(
+        get_frqs_soup(get_frqs_url(exam.name)), exam.name
+    )
     # files = get_files(f"{exam.name}/question-text") then [for file in files]
 
     source_dfs_list = []
@@ -447,19 +482,26 @@ def main(exam: Exam) -> None:
 
     for url in question_links:
 
+        # exam identification information
         file = get_pdf_name_from_link(url)
         file_content = get_file_content(f"{exam.name}/question-text/{file}")
         year = exam.get_year(file, file_content)
+        exam_edition = exam.get_exam_edition(year, file_content)
 
+        # sources
         file_content = preprocess_file_content(file_content)
-        source_dfs_list.append(exam.get_source_df(url, year, file_content))
+        source_df = exam.get_source_df(url, year, file_content)
+        source_df["exam_edition"] = exam_edition
+        source_dfs_list.append(source_df)
 
+        # questions
         file_content = exam.remove_sources(file_content)
-        question_dfs_list.append(exam.get_question_df(url, year, file_content))
+        question_df = exam.get_question_df(url, year, file_content)
+        question_df["exam_edition"] = exam_edition
+        question_dfs_list.append(question_df)
 
     source_dfs = pd.concat(source_dfs_list, ignore_index=True, sort=False)
     question_dfs = pd.concat(question_dfs_list, ignore_index=True, sort=False)
-
     create_csv(source_dfs, f"{exam.name}/source.csv")
     create_csv(question_dfs, f"{exam.name}/question.csv")
 
