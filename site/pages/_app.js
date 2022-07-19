@@ -1,7 +1,7 @@
-import { AppProps } from 'next/app';
-import { MantineProvider } from '@mantine/core';
+import { AppProps } from "next/app";
+import { MantineProvider } from "@mantine/core";
 
-export default function App(props: AppProps) {
+export default function App(props) {
   const { Component, pageProps } = props;
 
   return (
@@ -11,11 +11,11 @@ export default function App(props: AppProps) {
         withNormalizeCSS
         theme={{
           /** Put your mantine theme override here */
-          colorScheme: 'light',
+          colorScheme: "light",
         }}
       >
         <Component {...pageProps} />
-      </MantineProvider>    
+      </MantineProvider>
     </>
   );
 }
