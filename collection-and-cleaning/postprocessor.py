@@ -2,13 +2,21 @@ import pandas as pd
 import re
 
 
+def remove_1999(df: pd.DataFrame):
+    df.drop(df[df["year"] == "1999"].index, inplace=True)
+
+
 def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
     def strip_chars(text: str) -> str:
         try:
-            text = text.strip().replace("  ", " ")
-            text = re.sub("\n", "", text)
+            text = (
+                text.replace("  ", " ")
+                .replace("a) ", "")
+                .replace("Answer (a), (b), and (c).", "")
+                .replace("\n", "")
+            )
             text = re.sub("^[\dabc](\)|\.)", "", text, flags=re.I | re.M)
-            text = text.strip("a) ")
+            text = text.strip()
         except _:
             pass
         finally:
@@ -16,6 +24,11 @@ def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
 
     df[f"{key}"] = df[f"{key}"].apply(strip_chars)
     return df
+
+
+# ques = pd.read_csv("./ap-european-history/question.csv")
+# strip_df(ques, "question")
+# ques.to_csv("test.csv")
 
 
 def post_cleaning(
