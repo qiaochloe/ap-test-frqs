@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 
 
 def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
@@ -7,6 +8,9 @@ def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
             text = text.strip().replace("  ", " ")
             text = re.sub("\n", "", text)
             text = re.sub("^[\dabc](\)|\.)", "", text, flags=re.I | re.M)
+            text = text.strip("a) ")
+        except _:
+            pass
         finally:
             return text
 
