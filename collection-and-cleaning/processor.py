@@ -55,7 +55,7 @@ class Exam:
 
     @classmethod
     def get_exam_edition(cls, year: str, file_content: str) -> str:
-        return ""
+        return " "
 
 
 class WorldHistoryExam(Exam):
@@ -280,7 +280,7 @@ class EuropeanHistoryExam(WorldHistoryExam):
         if 2002 <= year <= 2011:
             if "Form B" in file_content:
                 return "Form B"
-        return ""
+        return " "
 
     @classmethod
     def get_sources(
@@ -345,7 +345,7 @@ class UnitedStatesHistoryExam(WorldHistoryExam):
         if 2002 <= year <= 2011:
             if "Form B" in file_content:
                 return "Form B"
-        return ""
+        return " "
 
     @staticmethod
     def get_question_type(year: str) -> tuple[list[str], list[int]]:
@@ -385,7 +385,8 @@ class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
         if year >= 2021:
             if "Set 2" in file_content:
                 return "Set 2"
-        return "Set 1"
+            return "Set 1"
+        return " "
 
     @staticmethod
     def get_question_type(year: str) -> tuple[list[str, list[int]]]:
