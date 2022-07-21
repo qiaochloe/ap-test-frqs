@@ -9,21 +9,21 @@
 # APUSH, APEH had Form B from 2002-2011
 # APWORLD doesn't have any special forms
 
+from os.path import exists
+
 import re
 import pandas as pd
 import numpy as np
 from datetime import date
-from preprocessor import preprocess_file_content
+
+from preprocessor import remove_phrases, preprocess_file_content
 from pdf_scraper import (
     get_frqs_url,
     get_frqs_soup,
     get_question_links,
     get_scoring_links,
 )
-from os import listdir
-from os.path import exists
-
-from typing import Tuple
+from helper import get_file_content, create_csv
 
 
 class Exam:
@@ -56,18 +56,6 @@ class Exam:
     @classmethod
     def get_exam_edition(cls, year: str, file_content: str) -> str:
         return ""
-
-    @staticmethod
-    def remove_phrases(
-        file_content: str, regex_list: list, regex_flags=re.I | re.M
-    ) -> str:
-
-        """Removes phrases from file using a list of regex"""
-        if type(regex_list) is not list:
-            regex_list = [regex_list]
-        for regex in regex_list:
-            file_content = re.sub(regex, "", file_content, flags=regex_flags)
-        return file_content
 
 
 class WorldHistoryExam(Exam):
@@ -159,10 +147,10 @@ class WorldHistoryExam(Exam):
     @classmethod
     def remove_sources(cls, file_content: str) -> str:
 
-        file_content = cls.remove_phrases(
+        file_content = remove_phrases(
             file_content, [cls.doc_regex], regex_flags=re.M | re.S
         )
-        file_content = cls.remove_phrases(
+        file_content = remove_phrases(
             file_content, [cls.source_regex], regex_flags=re.M | re.S
         )
 
@@ -436,33 +424,6 @@ class UnitedStatesGovernmentAndPoliticsExam(WorldHistoryExam):
 
         df[f"{key}"] = df[f"{key}"].apply(strip_chars)
         return df
-
-
-def get_files(dir_name: str) -> list:
-    """Returns a list of the names of all the files in a directory"""
-
-    files = [file for file in listdir(dir_name) if file.endswith(".txt")]
-    return files
-
-
-def get_file_content(file_name: str) -> str:
-    """
-    Args:
-        file_name (str): name of the text file
-
-    Returns:
-        str: content of the text file
-    """
-
-    with open(file_name, encoding="utf-8") as file:
-        file_content = file.read()  # string
-    return file_content
-
-
-def create_csv(df: pd.DataFrame, file_name: str) -> None:
-
-    with open(f"{file_name}", "w+") as file:
-        df.to_csv(file, index=False)
 
 
 def get_pdf_name_from_link(link: str) -> str:
