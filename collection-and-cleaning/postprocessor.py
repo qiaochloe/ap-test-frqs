@@ -46,6 +46,33 @@ def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
     return df
 
 
+class Question:
+    def __init__(
+        self,
+        question: str,
+        year: int,
+        question_type: str,
+        question_number: int,
+        exam_edition: str = " ",
+    ):
+        self.question = question
+        self.year = year
+        self.question_type = question_type
+        self.question_number = question_number
+        self.exam_edition = exam_edition
+
+    def edit_row(self, df):
+        df.loc[
+            (df["year"] == self.year)
+            & (df["question_type"] == self.question_type)
+            & (df["question_number"] == self.question_number)
+            & (df["exam_edition"] == self.exam_edition),
+            "question",
+        ] = self.question
+
+        return df
+
+
 # United States History
 def patch_two(df: pd.DataFrame) -> pd.DataFrame:
     # ap16_frq_us_history.txt is missing some identifiers
