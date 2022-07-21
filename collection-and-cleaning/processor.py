@@ -21,6 +21,7 @@ from pdf_scraper import (
     get_scoring_links,
 )
 from os import listdir
+from os.path import exists
 
 from typing import Tuple
 
@@ -483,9 +484,17 @@ def main(exam: Exam) -> None:
     for url in question_links:
 
         # exam identification information
-        file = get_pdf_name_from_link(url)
-        file_content = get_file_content(f"{exam.name}/question-text/{file}")
-        year = exam.get_year(file, file_content)
+        file_name = get_pdf_name_from_link(url)
+        file_path = f"{exam.name}/question-text/{file_name}"
+
+        if exists(file_path):
+            file_content = get_file_content(file_path)
+        else:
+            print("Missing URL: " + url)
+            print("Missing FILE: " + file_name)
+            continue
+
+        year = exam.get_year(file_name, file_content)
         exam_edition = exam.get_exam_edition(year, file_content)
 
         # sources
