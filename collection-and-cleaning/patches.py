@@ -1,3 +1,9 @@
+# TODO:
+# EURO
+# Man for the field and woman for the hearth: Man for the sword and for the needle she:,LEQ,6,2000,https://secure-media.collegeboard.org/apc/euro_hist_00.pdf,
+# Maybe add exam attribute to Question class
+
+
 class Question:
     def __init__(
         self,
@@ -25,7 +31,6 @@ class Question:
         return df
 
 
-# United States History
 def apush_2016_saq(df: pd.DataFrame):
     question_text = [
         "BrieflyexplainhowONEmajorhistoricalfactorcontributedtothechangedepictedonthegraph. BrieflyexplainONEspecifichistoricaleffectthatresultedfromthechangedepictedonthegraph. BrieflyexplainANOTHERspecifichistoricaleffectthatresultedfromthechangedepictedonthegraph.",

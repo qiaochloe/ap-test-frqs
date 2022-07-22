@@ -1,6 +1,8 @@
 # TODO:
 # Check that number of scoring guidelines and number of pdfs are the same
 # Scrape Set 2 (for AP GOV)
+# 2003 AP US Gov scoring guideline is missing
+# distinguish between link and URL
 
 import requests
 from bs4 import BeautifulSoup as bs
@@ -87,20 +89,11 @@ def download_pdfs(exam: str, folder: str, links: list) -> None:
             pdf.write(content)
 
 
-def scrape_pdfs(exam: str, frqs_url: str) -> None:
-    soup = get_frqs_soup(frqs_url)
+def scrape_pdfs(exam: str) -> None:
+    soup = get_frqs_soup(get_frqs_url(exam))
 
-    # question_links = get_question_links(soup)
+    question_links = get_question_links(soup)
     scoring_links = get_scoring_links(soup)
 
-    # download_pdfs(exam, "question", question_links)
+    download_pdfs(exam, "question", question_links)
     download_pdfs(exam, "scoring-guideline", scoring_links)
-
-
-def main():
-    exam = "ap-european-history"
-    get_question_links(get_frqs_soup(get_frqs_url(exam)))
-
-
-if __name__ == "__main__":
-    main()

@@ -1,13 +1,6 @@
 # TODO:
 # add "Source:" as a header for a document; remove before getting questions
 # add section for "Historical Background:"; also remove before getting questions
-# add section for Form B?
-# consider serving regex as tuples (for the flags)
-
-# NOTE:
-# AP GOV has set 1 and 2 starting 2021
-# APUSH, APEH had Form B from 2002-2011
-# APWORLD doesn't have any special forms
 
 from os.path import exists
 

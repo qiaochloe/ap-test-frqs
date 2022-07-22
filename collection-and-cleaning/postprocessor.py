@@ -2,10 +2,6 @@ import pandas as pd
 import re
 from helper import create_csv
 
-# CHECK:
-# EURO
-# Man for the field and woman for the hearth: Man for the sword and for the needle she:,LEQ,6,2000,https://secure-media.collegeboard.org/apc/euro_hist_00.pdf,
-
 
 def remove_1999(df: pd.DataFrame) -> pd.DataFrame:
     df.astype({"year": "int32"}).dtypes  # make sure that year is int
@@ -46,7 +42,7 @@ def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
     return df
 
 
-def main(exam: Exam):
+def main(exam: str):
     question = pd.read_csv(f"{exam}/question.csv")
     source = pd.read_csv(f"{exam}/source.csv")
 

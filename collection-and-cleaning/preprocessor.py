@@ -1,5 +1,3 @@
-# Fix historical background phrase
-
 import re
 
 begin_response_phrase = [
