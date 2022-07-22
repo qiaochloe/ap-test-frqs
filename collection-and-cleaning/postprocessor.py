@@ -46,55 +46,7 @@ def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
     return df
 
 
-class Question:
-    def __init__(
-        self,
-        question: str,
-        year: int,
-        question_type: str,
-        question_number: int,
-        exam_edition: str = " ",
-    ):
-        self.question = question
-        self.year = year
-        self.question_type = question_type
-        self.question_number = question_number
-        self.exam_edition = exam_edition
-
-    def edit_row(self, df):
-        df.loc[
-            (df["year"] == self.year)
-            & (df["question_type"] == self.question_type)
-            & (df["question_number"] == self.question_number)
-            & (df["exam_edition"] == self.exam_edition),
-            "question",
-        ] = self.question
-
-        return df
-
-
-# United States History
-def patch_two(df: pd.DataFrame) -> pd.DataFrame:
-    # ap16_frq_us_history.txt is missing some identifiers
-    # so patching it manually
-
-    index = df[
-        df["question_url"]
-        == "https://secure-media.collegeboard.org/digitalServices/pdf/ap/ap16_frq_us_history.pdf"
-    ].index[0]
-
-    # temp = df.loc[index, "question"]
-    # for i in range(3):
-    #    df.loc[index + 6 - i, "question"] = df.loc[index + 5 - i, "question"]
-
-    # df.loc[
-    #    index + 3, "question"
-    # ] = "Briefly explain ONE major difference between Josephson’s and Brands’s historical interpretations of businessleaders who rose to prominence between 1865 and 1900. Briefly explain how ONE person, event, or development from the period 1865–1900 that is not explicitlymentioned in the excerpts could be used to support Josephson’s interpretation. Briefly explain how ONE person, event, or development from the period 1865–1900 that is not explicitlymentioned in the excerpts could be used to support Brands’s interpretation."
-
-    return df
-
-
-def main(exam):
+def main(exam: Exam):
     question = pd.read_csv(f"{exam}/question.csv")
     source = pd.read_csv(f"{exam}/source.csv")
 
