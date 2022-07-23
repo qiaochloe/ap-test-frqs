@@ -3,14 +3,17 @@
 # Man for the field and woman for the hearth: Man for the sword and for the needle she:,LEQ,6,2000,https://secure-media.collegeboard.org/apc/euro_hist_00.pdf,
 # Maybe add exam attribute to Question class
 
+import pandas as pd
+from helper import create_csv
+
 
 class Question:
     def __init__(
         self,
         question: str,
-        year: int,
         question_type: str,
         question_number: int,
+        year: int,
         exam_edition: str = " ",
     ):
         self.question = question
@@ -42,7 +45,27 @@ def apush_2016_saq(df: pd.DataFrame):
         "Evaluate the extent to which United States participation in the First World War (1917–1918) marked a turningpoint in the nation’s role in world affairs. In the development of your argument, explain what changed and what stayed the same from the periodimmediately before the war to the period immediately following it. (Historical thinking skill: Periodization)",
     ]
 
-    Question_list = [Question(question_text[i], SAQ, 2, 2016) for i in range(7)]
+    Question_list = [
+        Question(question_text[0], "SAQ", 1, 2016),
+        Question(question_text[1], "SAQ", 2, 2016),
+        Question(question_text[2], "SAQ", 3, 2016),
+        Question(question_text[3], "SAQ", 4, 2016),
+        Question(question_text[4], "DBQ", 1, 2016),
+        Question(question_text[5], "LEQ", 2, 2016),
+        Question(question_text[6], "LEQ", 3, 2016),
+    ]
 
     for question in Question_list:
         question.edit_row(df)
+
+    return df
+
+
+def main():
+    apush_csv = "ap-united-states-history/question.csv"
+    apush_df = pd.read_csv(apush_csv)
+    apush_df = apush_2016_saq(apush_df)
+    create_csv(apush_df, apush_csv)
+
+
+main()
