@@ -24,6 +24,4 @@ def get_file_content(file_name: str) -> str:
 
 
 def create_csv(df: pd.DataFrame, file_name: str) -> None:
-
-    with open(f"{file_name}", "w+") as file:
-        df.to_csv(file, index=False)
+    df.to_csv(file_name, index=False, mode="w+")

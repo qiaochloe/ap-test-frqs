@@ -9,17 +9,14 @@ from processor import (
 )
 import postprocessor
 
-# scrape_pdfs(exam)
-
-# Run this in the shell to unlock the PDFs
-# cd {exam}/pdf
-# for i in *; do qpdf --decrypt --replace-input "$i"; done
-
-# use Adobe Acrobat to get text
-
 # Example
-# exam = WorldHistoryExam()
+exam = UnitedStatesGovernmentAndPoliticsExam()
 # scrape_pdfs(exam.name)
 
-# processor.main(exam)
-# postprocessor.main(exam.name)
+# >>> cd {exam}/pdf
+# >>> for i in *; do qpdf --decrypt --replace-input "$i"; done
+
+# Use ADOBE ACROBAT to get the text from the pdf
+
+processor.main(exam)
+postprocessor.main(exam.name)
