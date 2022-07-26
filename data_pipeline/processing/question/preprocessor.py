@@ -56,6 +56,17 @@ headers_regex = ["SECTION [I]", "Part [ABC]"]
 other_regex = ["-[1-20]-"]  # Remove "^(Percent of)(.*?)(score.)(\s*)(.*?)(\s*?)$"
 
 
+def remove_phrases(file_content: str, regex_list: list, regex_flags=re.I | re.M) -> str:
+
+    """Removes phrases from file using a list of regex"""
+
+    if type(regex_list) is not list:
+        regex_list = [regex_list]
+    for regex in regex_list:
+        file_content = re.sub(regex, "", file_content, flags=regex_flags)
+    return file_content
+
+
 def get_phrases_regex(phrases: list) -> list:
     """Returns regex pattern that recognizes phrase patterns regardless of whitespace characters in between
 
@@ -77,17 +88,6 @@ def get_phrases_regex(phrases: list) -> list:
 
 all_phrases_regex = get_phrases_regex(all_phrases)
 case_sensitive_regex = get_phrases_regex(case_sensitive_phrases)
-
-
-def remove_phrases(file_content: str, regex_list: list, regex_flags=re.I | re.M) -> str:
-
-    """Removes phrases from file using a list of regex"""
-
-    if type(regex_list) is not list:
-        regex_list = [regex_list]
-    for regex in regex_list:
-        file_content = re.sub(regex, "", file_content, flags=regex_flags)
-    return file_content
 
 
 def preprocess_file_content(file_content: str) -> str:

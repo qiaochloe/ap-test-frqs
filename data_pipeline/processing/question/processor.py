@@ -1,22 +1,32 @@
 # TODO:
 # add "Source:" as a header for a document; remove before getting questions
 # add section for "Historical Background:"; also remove before getting questions
+# make imports and file paths more portable
 
+import os
+import sys
+from datetime import date
 from os.path import exists
 
 import re
-import pandas as pd
 import numpy as np
-from datetime import date
+import pandas as pd
 
-from preprocessor import remove_phrases, preprocess_file_content
+from preprocessor import preprocess_file_content, remove_phrases
+
+script_dir = os.path.dirname(__file__)
+scraper_dir = os.path.join(script_dir, "..", "..", "collecting")
+sys.path.append(scraper_dir)
 from pdf_scraper import (
-    get_frqs_url,
     get_frqs_soup,
+    get_frqs_url,
     get_question_links,
     get_scoring_links,
 )
-from helper import get_file_content, create_csv
+
+helper_dir = os.path.join(script_dir, "..", "..")
+sys.path.append(helper_dir)
+from helper import create_csv, get_file_content
 
 
 class Exam:
@@ -440,7 +450,7 @@ def main(exam: Exam) -> None:
 
         # exam identification information
         file_name = get_pdf_name_from_link(url)
-        file_path = f"{exam.name}/question-text/{file_name}"
+        file_path = f"data_pipeline/data/{exam.name}/question-text/{file_name}"
 
         if exists(file_path):
             file_content = get_file_content(file_path)
@@ -466,8 +476,8 @@ def main(exam: Exam) -> None:
 
     source_dfs = pd.concat(source_dfs_list, ignore_index=True, sort=False)
     question_dfs = pd.concat(question_dfs_list, ignore_index=True, sort=False)
-    create_csv(source_dfs, f"{exam.name}/source.csv")
-    create_csv(question_dfs, f"{exam.name}/question.csv")
+    create_csv(source_dfs, f"data_pipeline/data/{exam.name}/source.csv")
+    create_csv(question_dfs, f"data_pipeline/data/{exam.name}/question.csv")
 
 
 # TESTS
@@ -476,19 +486,11 @@ if __name__ == "__main__":
     apwh = WorldHistoryExam()
     main(apwh)
 
-    apush = UnitedStatesHistoryExam()
-    main(apush)
+#    apush = UnitedStatesHistoryExam()
+#    main(apush)
 
-    euro = EuropeanHistoryExam()
-    main(euro)
+#    euro = EuropeanHistoryExam()
+#    main(euro)
 
-    apgov = UnitedStatesGovernmentAndPoliticsExam()
-    main(apgov)
-
-# with open("test.txt", "w+") as file:
-#    content = remove_sources(preprocess_file_content(get_file_content("ap-world-history/question-text/ap-world-history-frq-2017.txt")))
-#    file.write(content)
-
-# a = preprocess_file_content(get_file_content("ap-world-history/question-text/ap16_frq_world_history.txt"))
-# with open("test.txt", "w+") as file:
-#    file.write(a)
+#    apgov = UnitedStatesGovernmentAndPoliticsExam()
+#    main(apgov)

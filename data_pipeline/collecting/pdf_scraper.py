@@ -73,7 +73,7 @@ def get_scoring_links(frqs_soup) -> list:
 
 
 def download_pdfs(exam: str, folder: str, links: list) -> None:
-    """Downloads PDFs under {exam}/pdf/{pdf_name}"""
+    """Downloads PDFs under data_pipeline/data/{exam}/pdf/{pdf_name}"""
 
     for link in links:
 
@@ -81,7 +81,7 @@ def download_pdfs(exam: str, folder: str, links: list) -> None:
         name = link.split("/")[-1]
         content = requests.get(link).content
 
-        path = f"{exam}/{folder}/{name}"
+        path = f"data_pipeline/data/{exam}/{folder}/{name}"
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
         # Create pdf with said info

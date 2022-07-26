@@ -1,5 +1,11 @@
+import os
+import sys
 import pandas as pd
 import re
+
+script_dir = os.path.dirname(__file__)
+helper_dir = os.path.join(script_dir, "..", "..")
+sys.path.append(helper_dir)
 from helper import create_csv
 
 
@@ -39,8 +45,8 @@ def strip_df(df: pd.DataFrame, key: str) -> pd.DataFrame:
 
 
 def main(exam: str):
-    question = pd.read_csv(f"{exam}/question.csv")
-    source = pd.read_csv(f"{exam}/source.csv")
+    question = pd.read_csv(f"data_pipeline/data/{exam}/question.csv")
+    source = pd.read_csv(f"data_pipeline/data/{exam}/source.csv")
 
     remove_1999(question)
     remove_1999(source)
@@ -48,8 +54,8 @@ def main(exam: str):
     strip_df(question, "question")
     strip_df(source, "source_content")
 
-    create_csv(question, f"./{exam}/question.csv")
-    create_csv(source, f"./{exam}/source.csv")
+    create_csv(question, f"data_pipeline/data/{exam}/question.csv")
+    create_csv(source, f"data_pipeline/data/{exam}/source.csv")
 
 
 if __name__ == "__main__":
