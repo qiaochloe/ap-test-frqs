@@ -7,3 +7,5 @@ __pycache__
 *.pyc
 
 /test_scraps
+/data_pipeline/data/*/question/**
+/data_pipeline/data/*/scoring-guideline/**
